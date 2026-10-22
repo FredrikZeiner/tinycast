@@ -250,6 +250,8 @@ the catalog (Xcode's own build does the same in the IDE). The six privacy prompt
 - **A view that only ever labels takes `LocalizedStringResource`**, so its callers pass plain literals
   and the compiler still extracts them: `SettingsRowTitle`, `SettingsAnchor`, `SettingsSearchEntry`,
   `FormRow`, `FeatureSwitchSection`, `SettingsEditorHeader`, `SettingsFilterField`.
+- **A `LocalizedStringResource` becomes a `String` through `resolved()`**, never `String(localized:)`:
+  that overload can skip the bundle's string-table cache and reparse the whole table on every call.
 - **Everything that also carries runtime text keeps `String`**, and its literal callers write
   `String(localized: "…")` — dialogs, HUD messages, `PopoverMenuItem`, AppKit menus and windows,
   `LocalizedError`, and every model `title`. `Model/` files use it too; it is Foundation.
