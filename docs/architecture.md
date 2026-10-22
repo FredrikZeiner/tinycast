@@ -99,8 +99,9 @@ app: the stores (`AppIndex`, `ClipboardStore`, `SnippetsStore`, `QuicklinkStore`
 `MeetingClock`), `NotesStore`, the twenty-one feature coordinators, and the
 window controllers.
 
-`AppDelegate.applicationDidFinishLaunching` calls `AppCore.shared.start()` and nothing else. That is the
-one wiring point, and `start()` reads as the app's whole boot sequence in one screen.
+`AppDelegate.applicationDidFinishLaunching` calls `AppCore.shared.start(launchedByUser:)` and nothing
+else; the delegate only reads the launch Apple Event to tell a plain open from a login-item or URL
+launch. That is the one wiring point, and `start` reads as the app's whole boot sequence in one screen.
 
 **Feature actions live on that feature's coordinator, and a view must never reach past a coordinator
 into a store to mutate it.** That is the rule; `AppCore` holds only the closure wiring that connects a

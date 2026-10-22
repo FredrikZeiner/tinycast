@@ -52,6 +52,10 @@ The command palette is a borderless floating `NSPanel` hosting SwiftUI; see
 Everything resolved "once per summon" is resolved there deliberately, not per render. `AppCore` holds
 only the closure wiring; the behaviour is `PaletteCoordinator`'s.
 
+Opening the app summons the launcher too: a Dock click or a second open through `handleReopen`, and a
+cold launch from Finder, Spotlight or a relaunch through `start(launchedByUser:)`. A login-item or URL
+launch shows nothing, and the very first launch shows onboarding instead.
+
 ## Screens
 
 `PaletteState` (mode / query / selection / `focusToken`) is the bridge between the panel and the app.

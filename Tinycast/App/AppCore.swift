@@ -278,7 +278,7 @@ final class AppCore {
             saveSelection: { UserDefaults.standard.set($0?.rawValue, forKey: noteSelectionKey) })
     }
 
-    func start() {
+    func start(launchedByUser: Bool) {
         Signposts.interval("AppCore.start") {
             // Shorten AppKit's ~2–3s tooltip delay; registration domain, so a user default wins.
             UserDefaults.standard.register(defaults: ["NSInitialToolTipDelay": 250])
@@ -459,6 +459,11 @@ final class AppCore {
             if !OnboardingState.hasOnboarded {
                 OnboardingState.markShown()
                 onboardingCoordinator.showOnboarding()
+            } else if launchedByUser {
+                paletteCoordinator.showPalette(mode: .launcher)
+            }
+            if let version = updateChecker.takeInstalledVersion() {
+                showMessage(String(localized: "Updated to Tinycast \(version.description)"))
             }
         }
     }
