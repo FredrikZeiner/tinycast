@@ -178,7 +178,9 @@ driven imperatively from AppKit. Extension menu extras are dynamic `NSStatusItem
 
 `NSAlert` is never used, and that is load-bearing. Appearance is a setting: `AppCore.applyAppearance()`
 assigns `NSApp.appearance` from `AppSettings.appearance`, and `.system` assigns `nil` so AppKit follows
-macOS by itself. Nothing else in the app sets an appearance.
+macOS by itself. Nothing else in the app sets an appearance. Animations take the same shape:
+`AppCore.applyMotion()` projects `AppSettings.animationsEnabled` into `Motion.isEnabled` and re-points
+every live `AnimatedPanel` (see [ui.md](ui.md#non-negotiable-invariants)).
 
 ## Observation
 

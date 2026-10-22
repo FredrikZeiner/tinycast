@@ -262,6 +262,7 @@ run language-test          Tinycast/Features/Settings/AppLanguage.swift
 run localized-resource-test Tinycast/Platform/LocalizedResource.swift
 run exclusive onboarding-test Tinycast/Features/Onboarding/OnboardingCoordinator.swift \
                            Tinycast/Windows/AppWindowController.swift \
+                           Tinycast/DesignSystem/Interaction/Motion.swift \
                            Tinycast/Windows/WindowChrome.swift Tinycast/Platform/ActivationPolicy.swift
 run relaunch-test          Tinycast/App/AppDelegate.swift Tinycast/Platform/RelaunchRunner.swift
 run interface-size-test    Tinycast/Platform/Appearance.swift \
@@ -279,6 +280,8 @@ run palette-menu-click-test Tinycast/Platform/Appearance.swift \
                            Tinycast/Platform/WindowLevel.swift \
                            Tinycast/Platform/NotificationToken.swift \
                            Tinycast/DesignSystem/Interaction/KeyboardFocus.swift \
+                           Tinycast/DesignSystem/Interaction/Motion.swift \
+                           Tinycast/DesignSystem/Interaction/AnimatedPanel.swift \
                            Tinycast/Palette/PalettePanel.swift
 run form-input-test        Tinycast/Platform/Appearance.swift \
                            Tinycast/DesignSystem/Theme.swift \

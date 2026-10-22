@@ -285,6 +285,7 @@ final class AppCore {
             NSApp.setActivationPolicy(.accessory)
             dictationAudioDucker.recover()
             applyAppearance()
+            applyMotion()
             observeEffectiveAppearance()
             pinnedEmoji.onPersistenceFailure = { [weak self] in
                 self?.showMessage(String(localized: "Couldn't save Emoji & Symbols pins"), tone: .danger)
@@ -750,6 +751,7 @@ final class AppCore {
             { _ = $0.snippetsShowInLauncher },
             reproject: { $0.snippetCoordinator.applySnippetsLauncherPresence() })
         track({ _ = $0.appearance }, reproject: { $0.applyAppearance() })
+        track({ _ = $0.animationsEnabled }, reproject: { $0.applyMotion() })
         track({ _ = $0.language }, reproject: { $0.offerLanguageRelaunch() })
         track({ _ = $0.interfaceSize }, reproject: { $0.windowController.applyInterfaceSize() })
         // Settings panes did these on change; settings.json can change them with no pane open.
@@ -769,6 +771,14 @@ final class AppCore {
     /// `.system` resolves to `nil`, so AppKit follows macOS with nothing polling.
     private func applyAppearance() {
         NSApp.appearance = settings.appearance.nsAppearance
+    }
+
+    /// A built panel keeps the behaviour it was made with, so the live ones are re-pointed.
+    private func applyMotion() {
+        Motion.isEnabled = settings.animationsEnabled
+        for case let panel as any AnimatedPanel in NSApp.windows {
+            panel.followMotion()
+        }
     }
 
     private var isLanguagePending: Bool { settings.language.rawValue != launchLocalization }
