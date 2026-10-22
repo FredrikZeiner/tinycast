@@ -16,22 +16,32 @@ struct AIProviderTests {
     }
 
     static func instructionsFollowTheSetting() {
+        let cloud = AIModelSelection.codex(model: "gpt-5", effort: nil)
         for prompt in [nil, "", "   \n\t "] as [String?] {
             expect(
-                AIInstructions.compose(userPrompt: prompt, isEnabled: true, offersChoices: false)
+                AIInstructions.compose(
+                    userPrompt: prompt, isEnabled: true, offersChoices: false, model: cloud)
                     == AIPreamble.text,
                 "an absent or blank user prompt with choices off sends the preamble alone")
         }
         expect(
             AIInstructions.compose(
-                userPrompt: "  Answer only in haiku.  ", isEnabled: true, offersChoices: true)
+                userPrompt: "  Answer only in haiku.  ", isEnabled: true, offersChoices: true,
+                model: cloud)
                 == AIPreamble.text + "\n\n" + AIPreamble.choices + "\n\nAnswer only in haiku.",
             "instructions put the preamble and its choices before the trimmed user prompt")
         for prompt in [nil, "Answer only in haiku."] as [String?] {
             expect(
-                AIInstructions.compose(userPrompt: prompt, isEnabled: false, offersChoices: true)
+                AIInstructions.compose(
+                    userPrompt: prompt, isEnabled: false, offersChoices: true, model: cloud)
                     == nil,
                 "disabled instructions withhold the preamble, its choices and the user prompt")
+            expect(
+                AIInstructions.compose(
+                    userPrompt: prompt, isEnabled: true, offersChoices: true,
+                    model: .appleIntelligence)
+                    == nil,
+                "the on-device model gets no preamble, choices or user prompt")
         }
         expect(
             (AIPreamble.text + AIPreamble.choices).count < 1_800,
