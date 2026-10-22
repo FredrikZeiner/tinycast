@@ -121,134 +121,161 @@ struct HyperKeyTest {
             HyperKeyConflictPolicy.capsLockRemaps(in: [:]).isEmpty)
     }
 
-    static func remapperLifecycle() {
-        let recoveryKey = "hyperKeyKeyboardMappings"
-        func fixture(_ body: (KeyboardRemapper, UserDefaults) -> Void) {
-            HIDEventSystem.reset()
-            let domain = "tinycast.hyper-key-test.\(UUID())"
-            let defaults = UserDefaults(suiteName: domain)!
-            defer { defaults.removePersistentDomain(forName: domain) }
-            body(KeyboardRemapper(defaults: defaults), defaults)
+    @MainActor
+    struct RemapLab {
+        let directory: URL
+        var journal: URL { journal(named: "hyper-key") }
+        var hasJournal: Bool { hasJournal(named: "hyper-key") }
+
+        func journal(named name: String) -> URL { directory.appending(path: "\(name).json") }
+
+        func hasJournal(named name: String) -> Bool {
+            FileManager.default.fileExists(atPath: journal(named: name).path(percentEncoded: false))
         }
-        fixture { remapper, defaults in
+
+        func remapper(_ owner: String = "Tinycast", name: String = "hyper-key") -> KeyboardRemapper {
+            KeyboardRemapper(directory: directory, name: name, owner: owner)
+        }
+    }
+
+    static func remapperLifecycle() {
+        func fixture(_ body: (RemapLab) -> Void) {
+            HIDEventSystem.reset()
+            let directory = FileManager.default.temporaryDirectory
+                .appending(path: "tinycast.hyper-key-test.\(UUID())")
+            try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            defer { try? FileManager.default.removeItem(at: directory) }
+            body(RemapLab(directory: directory))
+        }
+        fixture { lab in
+            let remapper = lab.remapper()
             HIDEventSystem.mappings[1] = [otherTool]
-            check("enable succeeds", remapper.apply(toF18))
+            check("enable succeeds", remapper.apply(toF18) == .applied)
             check("enable preserves unrelated mappings", HIDEventSystem.mappings[1] == [otherTool, toF18])
-            check("enable journals recovery", defaults.data(forKey: recoveryKey) != nil)
+            check("enable journals recovery", lab.hasJournal)
             let writes = HIDEventSystem.writeCount
             check(
-                "idempotent apply avoids writes", remapper.apply(toF18) && HIDEventSystem.writeCount == writes
-            )
+                "idempotent apply avoids writes",
+                remapper.apply(toF18) == .applied && HIDEventSystem.writeCount == writes)
             HIDEventSystem.connect(2)
             check("hot plug remaps new keyboards", HIDEventSystem.mappings[2] == [toF18])
             HIDEventSystem.mappings[2] = []
             check(
                 "repair restores a lost mapping", remapper.repair() && HIDEventSystem.mappings[2] == [toF18])
             check("repair avoids writes when correct", !remapper.repair())
-            check("route switching succeeds", remapper.apply(toRightControl))
+            check("route switching succeeds", remapper.apply(toRightControl) == .applied)
             check(
                 "route switching reaches both keyboards",
                 HIDEventSystem.mappings.values.allSatisfy {
                     $0.contains(toRightControl) && !$0.contains(toF18)
                 })
-            check("cleanup succeeds", remapper.apply(nil))
+            check("cleanup succeeds", remapper.restore())
             check(
                 "cleanup preserves unrelated mappings",
                 HIDEventSystem.mappings[1] == [otherTool] && HIDEventSystem.mappings[2] == [])
-            check("completed cleanup removes recovery", defaults.data(forKey: recoveryKey) == nil)
+            check("completed cleanup removes recovery", !lab.hasJournal)
         }
-        fixture { remapper, _ in
+        fixture { lab in
+            let remapper = lab.remapper()
             HIDEventSystem.rejectedKeyboards = [1]
-            check("rejected writes report failure", !remapper.apply(toF18))
+            check("rejected writes report failure", remapper.apply(toF18) == .unavailable)
             HIDEventSystem.rejectedKeyboards = []
-            check("the same route retries after failure", remapper.apply(toF18))
+            check("the same route retries after failure", remapper.apply(toF18) == .applied)
         }
-        fixture { remapper, defaults in
+        fixture { lab in
+            let remapper = lab.remapper()
             HIDEventSystem.connect(2)
             HIDEventSystem.rejectedKeyboards = [2]
-            check("a keyboard that rejects the remap is skipped", remapper.apply(toF18))
+            check("a keyboard that rejects the remap is skipped", remapper.apply(toF18) == .applied)
             check(
                 "only accepted writes change keyboards",
                 HIDEventSystem.mappings[1] == [toF18] && HIDEventSystem.mappings[2] == nil)
             check(
-                "partial success can be cleaned up", remapper.apply(nil) && HIDEventSystem.mappings[1] == [])
-            check("partial cleanup removes recovery", defaults.data(forKey: recoveryKey) == nil)
+                "partial success can be cleaned up", remapper.restore() && HIDEventSystem.mappings[1] == [])
+            check("partial cleanup removes recovery", !lab.hasJournal)
         }
-        fixture { remapper, defaults in
-            remapper.apply(toF18)
+        fixture { lab in
+            let remapper = lab.remapper()
+            _ = remapper.apply(toF18)
             HIDEventSystem.rejectedKeyboards = [1]
-            check("rejected cleanup reports failure", !remapper.apply(nil))
-            check("rejected cleanup keeps recovery", defaults.data(forKey: recoveryKey) != nil)
+            check("rejected cleanup reports failure", !remapper.restore())
+            check("rejected cleanup keeps recovery", lab.hasJournal)
             HIDEventSystem.rejectedKeyboards = []
-            KeyboardRemapper(defaults: defaults).clearLeftovers()
+            lab.remapper().restore()
             check("relaunch retries rejected cleanup", HIDEventSystem.mappings[1] == [])
-            check("relaunch clears successful recovery", defaults.data(forKey: recoveryKey) == nil)
+            check("relaunch clears successful recovery", !lab.hasJournal)
         }
-        fixture { remapper, defaults in
+        fixture { lab in
+            let remapper = lab.remapper()
             let original = HIDKeyMapping(source: HIDKeyMapping.capsLock, destination: 0x7_0000_0029)
             HIDEventSystem.mappings[1] = [original, otherTool]
-            remapper.apply(toF18)
-            remapper.apply(toRightControl)
+            _ = remapper.apply(toF18)
+            _ = remapper.apply(toRightControl)
             check(
                 "disable restores displaced Caps Lock mapping",
-                remapper.apply(nil) && Set(HIDEventSystem.mappings[1] ?? []) == [original, otherTool])
-            remapper.apply(toF18)
-            KeyboardRemapper(defaults: defaults).clearLeftovers()
+                remapper.restore() && Set(HIDEventSystem.mappings[1] ?? []) == [original, otherTool])
+            do { _ = lab.remapper().apply(toF18) }
+            lab.remapper().restore()
             check(
                 "crash recovery restores displaced mapping",
                 Set(HIDEventSystem.mappings[1] ?? []) == [original, otherTool])
         }
-        fixture { remapper, _ in
+        fixture { lab in
+            let remapper = lab.remapper()
             HIDEventSystem.mappings[1] = [toF18, otherTool]
-            remapper.apply(toF18)
-            remapper.apply(nil)
+            _ = remapper.apply(toF18)
+            remapper.restore()
             check(
                 "an identical pre-existing mapping is never owned",
                 HIDEventSystem.mappings[1] == [toF18, otherTool])
-            remapper.apply(toRightControl)
-            remapper.apply(nil)
+            _ = remapper.apply(toRightControl)
+            remapper.restore()
             check(
                 "another tool's Hyper mapping is restored",
                 Set(HIDEventSystem.mappings[1] ?? []) == [toF18, otherTool])
         }
-        fixture { remapper, _ in
-            remapper.apply(toF18)
+        fixture { lab in
+            let remapper = lab.remapper()
+            _ = remapper.apply(toF18)
             let replacement = HIDKeyMapping(source: HIDKeyMapping.capsLock, destination: 0x7_0000_0029)
             HIDEventSystem.mappings[1] = [replacement, otherTool]
-            remapper.apply(nil)
+            remapper.restore()
             check(
                 "cleanup preserves another tool's later replacement",
                 HIDEventSystem.mappings[1] == [replacement, otherTool])
         }
-        fixture { remapper, defaults in
-            remapper.apply(toF18)
+        fixture { lab in
             var journal: Data?
-            HIDEventSystem.beforeWrite = { journal = defaults.data(forKey: recoveryKey) }
-            remapper.apply(toRightControl)
-            HIDEventSystem.beforeWrite = nil
+            do {
+                let crashing = lab.remapper()
+                _ = crashing.apply(toF18)
+                HIDEventSystem.beforeWrite = { journal = try? Data(contentsOf: lab.journal) }
+                _ = crashing.apply(toRightControl)
+                HIDEventSystem.beforeWrite = nil
+            }
             for installed in [toF18, toRightControl] {
-                defaults.set(journal, forKey: recoveryKey)
+                try? journal?.write(to: lab.journal)
                 HIDEventSystem.mappings[1] = [installed, otherTool]
-                KeyboardRemapper(defaults: defaults).clearLeftovers()
+                lab.remapper().restore()
                 check(
                     "route-change crash recovers \(installed.destination)",
                     HIDEventSystem.mappings[1] == [otherTool])
             }
         }
-        fixture { remapper, defaults in
-            remapper.apply(toF18)
+        fixture { lab in
+            let remapper = lab.remapper()
+            _ = remapper.apply(toF18)
             HIDEventSystem.devices = []
             check(
-                "disconnected keyboard keeps recovery pending",
-                !remapper.apply(nil) && defaults.data(forKey: recoveryKey) != nil)
+                "disconnected keyboard keeps recovery pending", !remapper.restore() && lab.hasJournal)
             HIDEventSystem.connect(1)
             check(
                 "reconnection completes deferred cleanup",
-                HIDEventSystem.mappings[1] == [] && defaults.data(forKey: recoveryKey) == nil)
+                HIDEventSystem.mappings[1] == [] && !lab.hasJournal)
         }
-        fixture { remapper, defaults in
-            remapper.apply(toF18)
-            guard let data = defaults.data(forKey: recoveryKey),
+        fixture { lab in
+            do { _ = lab.remapper().apply(toF18) }
+            guard let data = try? Data(contentsOf: lab.journal),
                 var recovery = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
             else {
                 check("recovery journal decodes", false)
@@ -259,48 +286,76 @@ struct HyperKeyTest {
                 check("previous-boot journal encodes", false)
                 return
             }
-            defaults.set(previousBoot, forKey: recoveryKey)
-            KeyboardRemapper(defaults: defaults).clearLeftovers()
+            try? previousBoot.write(to: lab.journal)
+            lab.remapper().restore()
             check(
                 "recovery from another boot cannot claim a reused registry ID",
                 HIDEventSystem.mappings[1] == [toF18])
         }
-        fixture { remapper, _ in
+        fixture { lab in
             HIDEventSystem.available = false
-            check("missing HID SPI reports failure", !remapper.apply(toF18))
+            check("missing HID SPI reports failure", lab.remapper().apply(toF18) == .unavailable)
         }
-        fixture { remapper, defaults in
-            let dictationKey = "dictationKeyKeyboardMappings"
-            let dictation = KeyboardRemapper(defaults: defaults, recoveryKey: dictationKey)
-            HIDEventSystem.mappings[1] = [otherTool]
-            remapper.apply(toF18)
-            dictation.apply(toF20)
-            check(
-                "Caps Lock and 🎤 remaps share a keyboard",
-                HIDEventSystem.mappings[1] == [otherTool, toF18, toF20])
-            check(
-                "each remapper keeps its own recovery journal",
-                defaults.data(forKey: recoveryKey) != nil && defaults.data(forKey: dictationKey) != nil)
-            dictation.apply(nil)
-            check("removing 🎤 keeps Caps Lock", HIDEventSystem.mappings[1] == [otherTool, toF18])
-            dictation.apply(toF20)
-            remapper.apply(nil)
-            check("removing Caps Lock keeps 🎤", HIDEventSystem.mappings[1] == [otherTool, toF20])
-        }
-        fixture { remapper, _ in
+        fixture { lab in
+            let remapper = lab.remapper()
             HIDEventSystem.devices = []
-            check("no keyboard yet still succeeds", remapper.apply(toF18))
+            check("no keyboard yet still succeeds", remapper.apply(toF18) == .applied)
             HIDEventSystem.connect(1)
             check("the first keyboard to connect gets the remap", HIDEventSystem.mappings[1] == [toF18])
         }
-        fixture { remapper, _ in
-            remapper.apply(toF18)
+        fixture { lab in
+            let remapper = lab.remapper()
+            _ = remapper.apply(toF18)
             HIDEventSystem.rejectedKeyboards = [2]
             HIDEventSystem.connect(2)
             check(
                 "a rejected hot-plug write leaves the other keyboards remapped",
                 remapper.mapping == toF18 && HIDEventSystem.mappings[1] == [toF18]
                     && HIDEventSystem.mappings[2] == nil)
+        }
+        fixture { lab in
+            let remapper = lab.remapper()
+            let dictation = lab.remapper(name: "dictation-key")
+            HIDEventSystem.mappings[1] = [otherTool]
+            _ = remapper.apply(toF18)
+            _ = dictation.apply(toF20)
+            check(
+                "Caps Lock and 🎤 remaps share a keyboard",
+                HIDEventSystem.mappings[1] == [otherTool, toF18, toF20])
+            check(
+                "each remapper keeps its own recovery journal",
+                lab.hasJournal && lab.hasJournal(named: "dictation-key"))
+            dictation.restore()
+            check("removing 🎤 keeps Caps Lock", HIDEventSystem.mappings[1] == [otherTool, toF18])
+            _ = dictation.apply(toF20)
+            remapper.restore()
+            check("removing Caps Lock keeps 🎤", HIDEventSystem.mappings[1] == [otherTool, toF20])
+        }
+        fixture { lab in
+            let stable = lab.remapper("Tinycast")
+            let dev = lab.remapper("Tinycast Dev")
+            check("the first channel to remap holds the keyboards", stable.apply(toF18) == .applied)
+            check(
+                "a second channel learns who holds them", dev.apply(toRightControl) == .held(by: "Tinycast"))
+            check("a refused channel writes nothing", HIDEventSystem.mappings[1] == [toF18])
+            check(
+                "a channel without the lease leaves a live remap alone",
+                !dev.restore() && HIDEventSystem.mappings[1] == [toF18])
+            stable.restore()
+            check("a waiting channel takes over once released", dev.apply(toRightControl) == .applied)
+            dev.restore()
+            check(
+                "channels taking turns leave Caps Lock unmapped",
+                HIDEventSystem.mappings[1] == [] && !lab.hasJournal)
+        }
+        fixture { lab in
+            do { _ = lab.remapper("Tinycast Dev").apply(toRightControl) }
+            let stable = lab.remapper("Tinycast")
+            check("a crashed channel's lease lapses", stable.apply(toF18) == .applied)
+            stable.restore()
+            check(
+                "a channel cleans up another's crashed remap",
+                HIDEventSystem.mappings[1] == [] && !lab.hasJournal)
         }
     }
 

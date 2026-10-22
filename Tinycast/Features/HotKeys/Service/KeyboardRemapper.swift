@@ -2,6 +2,12 @@ import Foundation
 
 @MainActor
 final class KeyboardRemapper {
+    enum Outcome: Equatable {
+        case applied
+        case unavailable
+        case held(by: String)
+    }
+
     private struct Recovery: Codable {
         let bootSessionID: String
         let keyboards: [String: SavedMapping]
@@ -27,20 +33,17 @@ final class KeyboardRemapper {
     private(set) var mapping: HIDKeyMapping?
     private(set) var sawKarabinerConflict = false
 
-    private let defaults: UserDefaults
-    private let recoveryKey: String
+    private let lease: ProcessLease
+    /// Machine- and boot-specific, so shared by every channel and never in a backup.
+    private let journalURL: URL
     private let bootSessionID: String?
-    private var savedMappings: [String: SavedMapping]
+    private var savedMappings: [String: SavedMapping] = [:]
     private lazy var system: HIDEventSystem? = makeSystem()
 
-    init(defaults: UserDefaults = .standard, recoveryKey: String = "hyperKeyKeyboardMappings") {
-        self.defaults = defaults
-        self.recoveryKey = recoveryKey
+    init(directory: URL, name: String, owner: String) {
+        lease = ProcessLease(url: directory.appending(path: "\(name).lock"), owner: owner)
+        journalURL = directory.appending(path: "\(name).json")
         bootSessionID = Self.currentBootSessionID()
-        let recovery = defaults.data(forKey: recoveryKey).flatMap {
-            try? JSONDecoder().decode(Recovery.self, from: $0)
-        }
-        savedMappings = recovery?.bootSessionID == bootSessionID ? recovery?.keyboards ?? [:] : [:]
     }
 
     var keyboards: [HIDEventSystem.Keyboard] { system?.keyboards ?? [] }
@@ -50,17 +53,20 @@ final class KeyboardRemapper {
         return system.keyboards.filter { system.keyMappings(of: $0).contains(mapping) }.map(\.name)
     }
 
-    @discardableResult
-    func apply(_ mapping: HIDKeyMapping?) -> Bool {
+    func apply(_ mapping: HIDKeyMapping) -> Outcome {
+        guard bootSessionID != nil else { return .unavailable }
+        guard claimLease() else { return .held(by: lease.holder) }
         self.mapping = mapping
-        guard mapping != nil || !savedMappings.isEmpty else { return true }
-        guard bootSessionID != nil else { return false }
-        return reconcileAll().succeeded
+        return reconcileAll().succeeded ? .applied : .unavailable
     }
 
-    func clearLeftovers() {
-        guard mapping == nil, !savedMappings.isEmpty else { return }
-        reconcileAll()
+    @discardableResult
+    func restore() -> Bool {
+        mapping = nil
+        guard claimLease() else { return false }
+        defer { lease.release() }
+        guard !savedMappings.isEmpty else { return true }
+        return reconcileAll().succeeded
     }
 
     func repair() -> Bool {
@@ -72,10 +78,12 @@ final class KeyboardRemapper {
     private func makeSystem() -> HIDEventSystem? {
         guard let system = HIDEventSystem() else { return nil }
         system.onKeyboardConnected = { [weak self, weak system] keyboard in
-            guard let self, let system,
-                mapping != nil || savedMappings[String(keyboard.registryID)] != nil
-            else { return }
-            update(keyboard, in: system)
+            guard let self, let system else { return }
+            if mapping != nil {
+                update(keyboard, in: system)
+            } else if savedMappings[String(keyboard.registryID)] != nil {
+                restore()
+            }
         }
         system.watchConnections()
         return system
@@ -148,15 +156,30 @@ final class KeyboardRemapper {
         return .changed
     }
 
+    private func claimLease() -> Bool {
+        if lease.isHeld { return true }
+        guard lease.acquire() else { return false }
+        savedMappings = readJournal()
+        return true
+    }
+
+    private func readJournal() -> [String: SavedMapping] {
+        guard let data = try? Data(contentsOf: journalURL),
+            let recovery = try? JSONDecoder().decode(Recovery.self, from: data),
+            recovery.bootSessionID == bootSessionID
+        else { return [:] }
+        return recovery.keyboards
+    }
+
     private func save(_ mapping: SavedMapping?, for id: String) {
         savedMappings[id] = mapping
         if savedMappings.isEmpty {
-            defaults.removeObject(forKey: recoveryKey)
+            try? FileManager.default.removeItem(at: journalURL)
         } else if let bootSessionID,
             let data = try? JSONEncoder().encode(
                 Recovery(bootSessionID: bootSessionID, keyboards: savedMappings))
         {
-            defaults.set(data, forKey: recoveryKey)
+            try? data.write(to: journalURL, options: .atomic)
         }
     }
 

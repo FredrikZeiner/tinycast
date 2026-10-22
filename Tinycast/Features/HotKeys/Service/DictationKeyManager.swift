@@ -6,7 +6,8 @@ final class DictationKeyManager {
     var onProblem: ((String) -> Void)?
 
     private let hotKeys: HotKeyManager
-    private let remapper = KeyboardRemapper(recoveryKey: "dictationKeyKeyboardMappings")
+    private let remapper = KeyboardRemapper(
+        directory: AppPaths.shared(), name: "dictation-key", owner: Bundle.main.appDisplayName)
     private var sessionTokens: [NotificationToken] = []
     private var isSessionActive = true
 
@@ -15,21 +16,23 @@ final class DictationKeyManager {
     }
 
     func start() {
-        remapper.clearLeftovers()
         observeHotKeys()
         observeSession()
         apply()
     }
 
     func prepareForTermination() {
-        remapper.apply(nil)
+        remapper.restore()
     }
 
     private func apply() {
         let isWanted = hotKeys.recordingAction != nil || hotKeys.bindsDictationKey
-        let wanted = isWanted && isSessionActive ? HIDKeyMapping.dictationKeyToF20 : nil
-        let isChange = wanted != remapper.mapping
-        if !remapper.apply(wanted), wanted != nil, isChange, hotKeys.bindsDictationKey {
+        guard isWanted, isSessionActive else {
+            remapper.restore()
+            return
+        }
+        let isChange = remapper.mapping != .dictationKeyToF20
+        if remapper.apply(.dictationKeyToF20) == .unavailable, isChange, hotKeys.bindsDictationKey {
             onProblem?(String(localized: "macOS refused to remap the Dictation key"))
         }
     }

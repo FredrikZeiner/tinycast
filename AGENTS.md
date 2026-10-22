@@ -131,7 +131,8 @@ feature's doc, under its own `## Invariants`.
   Full rules: [standards.md#comments](docs/standards.md#comments).
 - **Debug builds are their own channel** — `Tinycast Dev.app` / `com.tinycast.app.dev` — so a local run
   never shares prefs, caches, TCC grants or the login item with an installed copy. Anything newly
-  persisted must stay keyed by `Bundle.main.bundleIdentifier`.
+  persisted must stay keyed by `Bundle.main.bundleIdentifier` — except state guarding hardware every
+  channel shares, which goes in `AppPaths.shared()` (today only the keyboard remap leases).
 - **XcodeGen owns the project.** `Tinycast.xcodeproj` is committed but generated from `project.yml`;
   after editing it, run `xcodegen generate` and commit both. No SwiftPM, and never `Bundle.module`.
 

@@ -22,7 +22,8 @@ final class HyperKeyManager: HealthCheckable {
     @ObservationIgnored private let settings: AppSettings
     @ObservationIgnored private let hotKeys: HotKeyManager
     @ObservationIgnored private let tap: HyperKeyTap
-    @ObservationIgnored private let remapper = KeyboardRemapper()
+    @ObservationIgnored private let remapper = KeyboardRemapper(
+        directory: AppPaths.shared(), name: "hyper-key", owner: Bundle.main.appDisplayName)
     @ObservationIgnored private let secureInput = SecureInputMonitor()
     @ObservationIgnored private var observers: [NotificationToken] = []
     @ObservationIgnored private var runningAppsObservation: NSKeyValueObservation?
@@ -41,7 +42,6 @@ final class HyperKeyManager: HealthCheckable {
     func start() {
         secureInput.onChange = { [weak self] _ in self?.secureInputChanged() }
         tap.onUnmappedCapsLock = { [weak self] in self?.repairRemap() }
-        remapper.clearLeftovers()
         observeSettings()
         observeSystem()
         apply()
@@ -54,7 +54,7 @@ final class HyperKeyManager: HealthCheckable {
 
     /// The HID remap outlives the process, so hand the key back before exiting.
     func prepareForTermination() {
-        remapper.apply(nil)
+        remapper.restore()
     }
 
     func diagnostics() -> HyperKeyDiagnostics {
@@ -87,14 +87,19 @@ final class HyperKeyManager: HealthCheckable {
             return stop(.off)
         }
         if let blocker = HyperKeyConflictScanner.runningBlocker() {
-            if status != .blocked(appName: blocker) {
-                onProblem?(String(localized: "Quit \(blocker) to use the Hyper Key"))
-            }
-            return stop(.blocked(appName: blocker))
+            return block(by: blocker)
         }
         guard pauseReasons.isEmpty else { return stop(.paused) }
-        if route.remap != nil, remapper.mapping == nil { tap.unlatchCapsLock() }
-        guard remapper.apply(route.remap) else { return stop(.remapUnavailable) }
+        if let remap = route.remap {
+            let wasRemapped = remapper.mapping != nil
+            switch remapper.apply(remap) {
+            case .applied: if !wasRemapped { tap.unlatchCapsLock() }
+            case .unavailable: return stop(.remapUnavailable)
+            case .held(let holder): return awaitRemap(heldBy: holder)
+            }
+        } else {
+            remapper.restore()
+        }
         setRoute(route)
         healthTicker?.subscribe(self)
         status = tap.install() ? .active : .needsAccessibility
@@ -104,10 +109,23 @@ final class HyperKeyManager: HealthCheckable {
     private func stop(_ status: Status) {
         setRoute(nil)
         tap.tearDown()
-        remapper.apply(nil)
+        remapper.restore()
         healthTicker?.unsubscribe(self)
         self.status = status
         syncSecureInputHotKeys()
+    }
+
+    private func block(by appName: String) {
+        if status != .blocked(appName: appName) {
+            onProblem?(String(localized: "Quit \(appName) to use the Hyper Key"))
+        }
+        stop(.blocked(appName: appName))
+    }
+
+    private func awaitRemap(heldBy holder: String) {
+        guard status != .blocked(appName: holder) else { return }
+        block(by: holder)
+        healthTicker?.subscribe(self)
     }
 
     private func setRoute(_ route: HyperKeyRoute?) {
@@ -127,7 +145,7 @@ final class HyperKeyManager: HealthCheckable {
 
     /// One-second watchdog while a key is live. See docs/features/hotkeys.md#lifecycle.
     func healthCheck() {
-        guard tap.route != nil else { return }
+        guard tap.route != nil else { return apply() }
         secureInput.refresh()
         let previous = status
         if !tap.isInstalled {

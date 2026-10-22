@@ -1,6 +1,6 @@
 import Foundation
 
-/// The per-channel storage roots. Keyed by bundle id so a Dev build never shares a stable's dirs.
+/// Storage roots keyed by bundle id, so a Dev build never shares a stable's dirs by accident.
 enum AppPaths {
     static func caches(
         bundleID: String = Bundle.main.bundleIdentifier ?? "com.tinycast.app"
@@ -12,6 +12,10 @@ enum AppPaths {
         bundleID: String = Bundle.main.bundleIdentifier ?? "com.tinycast.app"
     ) -> URL {
         root(.applicationSupportDirectory, bundleID: bundleID)
+    }
+
+    static func shared() -> URL {
+        root(.applicationSupportDirectory, bundleID: "com.tinycast")
     }
 
     /// `~/.config/tinycast/settings.json`; another channel suffixes the folder, as `tinycast-dev`.

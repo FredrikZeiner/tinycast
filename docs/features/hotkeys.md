@@ -47,6 +47,10 @@ return `OSStatus` synchronously, preserving event order and hold-to-talk release
   macOS without it degrades the Hyper Key to `.remapUnavailable` instead of crashing.
 - **`KeyboardRemapper` only ever removes the Hyper Key's own entries** (`HIDKeyMapping.hyperKeyMappings`),
   so another tool's mapping for another key always survives Tinycast turning the Hyper Key off.
+- **Every channel shares one remap lease and one journal per remapped key**, in `AppPaths.shared()`,
+  because they all remap the same keyboards. Per-channel journals let one channel restore another's
+  live remap as the "original", stranding Caps Lock as F18 or Right Control with no record left to undo
+  it. Never write a keyboard mapping without holding the lease.
 - **A raw Caps Lock is never read as Hyper.** Its latch carries no release, so treating one as a press
   leaves the chord on every keystroke until the next press.
 
@@ -193,9 +197,10 @@ candidates:** the top-row media functions fire *below* the tap, and catching the
 raw HID listener, which needs Input Monitoring — a permission Tinycast never asks for.
 
 `HyperKeyManager.apply()` is the one funnel. Settings, sleep, lock, session switches and blocking apps
-all call it, and it converges on what the settings ask for: no key is `.off`, a running blocker is
-`.blocked`, a pause reason is `.paused`, a refused remap is `.remapUnavailable`; otherwise the remap goes
-in, the tap installs, and the status is `.active` or `.needsAccessibility`.
+all call it, and it converges on what the settings ask for: no key is `.off`, a running blocker or
+another Tinycast channel holding the remap is `.blocked`, a pause reason is `.paused`, a refused remap is
+`.remapUnavailable`; otherwise the remap goes in, the tap installs, and the status is `.active` or
+`.needsAccessibility`.
 
 ### Caps Lock has to stop being Caps Lock
 
@@ -231,12 +236,21 @@ skipped and stays plain Caps Lock; only every connected keyboard rejecting it re
 `.remapUnavailable`. With no keyboard connected, as after wake before a Bluetooth keyboard
 reconnects, the remap succeeds and hot plug places it.
 
-Recovery records are saved before each write, keyed by the HID service's registry ID and the current
+The keyboards are one machine-wide resource, but each channel is a separate app, and they can all run
+at once. So every channel claims the same `ProcessLease` — an `flock` on `hyper-key.lock` in
+`AppPaths.shared()` — before it writes a mapping, and holds it for as long as its remap is wanted. A
+second channel that wants Caps Lock gets `.held(by:)` with the name the holder wrote into the file,
+reports itself `.blocked`, and lets the watchdog retry; the kernel drops the lock however the holder
+exits, so a crash frees it as surely as a quit. A channel that wants nothing takes the lease only long
+enough to clean up, and leaves a live holder's remap alone.
+
+Recovery records live beside the lock in `hyper-key.json`, shared by every channel and read afresh on
+each claim. They are saved before each write, keyed by the HID service's registry ID and the current
 boot session. A route change records both its old and new mappings until the write completes. A crash
-on either side of the write therefore restores the original, even with Hyper Key set to None on the
-next launch. Failed cleanup retains its record and is retried on relaunch or keyboard reconnection.
-Records from another boot are ignored because HID mappings do not survive a reboot. The client stays
-alive after first use so connected keyboards receive the remap or finish pending cleanup.
+on either side of the write therefore restores the original on the next claim by any channel, even with
+Hyper Key set to None. Failed cleanup retains its record and is retried on the next claim or keyboard
+reconnection. Records from another boot are ignored because HID mappings do not survive a reboot. The
+client stays alive after first use so connected keyboards receive the remap or finish pending cleanup.
 
 The mapping comes off on unbind, on quit, while the Mac sleeps, while the screen is locked — a password
 typed at the lock screen needs a real Caps Lock — and while another user's session is active, and goes
@@ -348,7 +362,8 @@ it, so ✦Q can be neither recorded nor fired while it is on.
 Like every keyboard tap it needs the **Accessibility** grant; choosing a key in Settings is the one
 place that prompts for it. A one-second watchdog runs while a key is live: it retries installation
 until the grant lands, notices revocation, revives a tap the system disabled on timeout or user input,
-and polls Secure Input. The HID remap outlives the process, so `applicationWillTerminate` takes it off
+and polls Secure Input. It also runs while another channel holds the remap lease, retrying the claim.
+A force-quit cannot clean up, so its remap stays until any channel next launches or claims the lease. The HID remap outlives the process, so `applicationWillTerminate` takes it off
 every keyboard before exiting.
 
 ## The Dictation key
@@ -356,7 +371,9 @@ every keyboard before exiting.
 Apple's 🎤 key (Consumer `0xC000000CF`) can't be recorded. While a recorder is open or a binding uses
 F20, `DictationKeyManager` remaps it to **F20**, a bare F-key Carbon fires on press and release, even
 in Secure Input, with no tap or permission. Otherwise, and in other users' sessions, macOS Dictation
-keeps it. F20 keycaps draw as `mic`.
+keeps it. F20 keycaps draw as `mic`. Its remap has its own lease and journal, `dictation-key.lock` and
+`.json`, so it never waits on the Hyper Key's. A channel refused it stays quiet: the holder already
+sends F20.
 
 ## Recorder
 

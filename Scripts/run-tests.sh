@@ -594,6 +594,7 @@ run settings-backup-test   Tinycast/Features/Settings/AppSettingsKey.swift \
 run hyper-key-test         Tinycast/Features/HotKeys/Model/HIDKeyMapping.swift \
                            Tinycast/Features/HotKeys/Model/HyperKeyConflictPolicy.swift \
                            Tinycast/Features/HotKeys/Service/KeyboardRemapper.swift \
+                           Tinycast/Platform/ProcessLease.swift \
                            Tests/hyper-key-fixtures.swift
 run hotkey-dispatch-test   Tinycast/Features/HotKeys/Model/DoubleTapModifier.swift \
                            Tinycast/Features/HotKeys/Model/ModifierKey.swift \
