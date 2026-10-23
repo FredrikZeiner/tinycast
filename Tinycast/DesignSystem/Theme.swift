@@ -86,13 +86,14 @@ enum Theme {
         static let noteTrafficLightInset: CGFloat = 20
         /// Fraction of visible height above the palette's top edge; it grows downward.
         static let paletteTopMarginFraction: CGFloat = 0.18
-        static let headerHeight: CGFloat = 44
+        /// The search row; inside its padding, the compact bar is exactly twice the panel's radius.
+        static let headerHeight: CGFloat = Radius.panel * 2 - headerPadding * 2
         /// Fixed slot for the header glyph, so the field starts at one x in every mode.
         static let headerIconSlot: CGFloat = 22
         /// The narrowest a strip squeezes the search field to: the caret and a few characters.
         static let searchFieldMinWidth: CGFloat = 60
-        /// Room above the search row; it makes the compact bar exactly twice the panel's radius.
-        static let headerPadding: CGFloat = Radius.panel - headerHeight / 2
+        /// Room above the search row, constant so typing never shifts the bar.
+        static let headerPadding: CGFloat = 10
         static let compactHeight: CGFloat = headerHeight + headerPadding * 2
         /// How close a dragged palette must be to the invisible vertical centre line.
         static let paletteSnapDistance: CGFloat = 8
@@ -105,6 +106,8 @@ enum Theme {
         static let dropGuideFadeThreshold: CGFloat = 36
         static let dropGuideFadeDistance: CGFloat = 180
         static let bottomBarHeight: CGFloat = 52
+        /// The unit a form's text area counts its minimum height in, so it scales with the interface.
+        static let textAreaUnit: CGFloat = 44
         static let barButtonHeight: CGFloat = 28
         static let rowIcon: CGFloat = 24
         static let resultRowIcon: CGFloat = 26
@@ -330,10 +333,27 @@ enum Theme {
     }
 
     enum CompactBarMotion {
-        /// Each button leaves the search capsule a beat after the one nearer to it.
-        static func reveal(_ slot: Int) -> Animation {
-            .spring(duration: 0.5, bounce: 0.25).delay(Double(slot) * 0.04)
-        }
+        /// Under the 10pt gap, so resting buttons stand apart and only moving ones fuse.
+        static let blend: CGFloat = 8
+        /// Parked inside the capsule's end this small, so each button pinches out of it.
+        static let parkedScale: CGFloat = 0.36
+        /// One button after another, beaded off the capsule.
+        static let stagger: TimeInterval = 0.055
+        /// A summon lands first; the buttons extrude once the window has arrived.
+        static let revealDelay: TimeInterval = 0.12
+        /// The glyph surfaces once its glass has formed, and blurs in rather than popping.
+        static let glyphDelay: TimeInterval = 0.24
+        static let glyphFade: TimeInterval = 0.16
+        static let glyphBlur: CGFloat = 4
+        /// A chosen button fuses back into the capsule before its screen opens.
+        static let merge: Swift.Duration = .milliseconds(200)
+        /// Past the window's own close animation, so parking the buttons is never seen.
+        static let parkAfterHide: Swift.Duration = .milliseconds(300)
+        /// The capsule undershoots as it shortens, then settles.
+        static let capsule = Animation.spring(response: 0.44, dampingFraction: 0.62)
+        /// The buttons barely overshoot: the last rests on the window's edge, which would clip it.
+        static let button = Animation.spring(response: 0.44, dampingFraction: 0.86)
+        static let fuse = Animation.spring(response: 0.3, dampingFraction: 0.82)
     }
 
     enum MenuMotion {

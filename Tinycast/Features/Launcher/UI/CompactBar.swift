@@ -1,0 +1,165 @@
+import SwiftUI
+
+private typealias BarMotion = Theme.CompactBarMotion
+
+/// Where the capsule ends and each button rests, in a compact window exactly as wide as the panel.
+struct CompactBarGeometry {
+    let width: CGFloat
+    let height: CGFloat
+    let diameter: CGFloat
+    let gap: CGFloat
+    let count: Int
+
+    init(metrics: InterfaceMetrics, count: Int) {
+        width = metrics.size.panelWidth
+        height = metrics.size.compactHeight
+        // A point inside the bar's height, so the last button clears the window's rounded end.
+        diameter = height - metrics.scaled(1) * 2
+        gap = metrics.spacing.lg
+        self.count = count
+    }
+
+    func capsuleWidth(revealed: Bool) -> CGFloat {
+        revealed ? width - CGFloat(count) * (diameter + gap) : width
+    }
+
+    func center(of index: Int) -> CGPoint {
+        CGPoint(
+            x: capsuleWidth(revealed: true) + gap + diameter / 2 + CGFloat(index) * (diameter + gap),
+            y: height / 2)
+    }
+
+    /// Just inside the shortened capsule's end, so the capsule pulling back uncovers each button.
+    var parked: CGPoint {
+        CGPoint(x: capsuleWidth(revealed: true) - diameter / 2, y: height / 2)
+    }
+}
+
+/// The compact bar's glass: a capsule the buttons bead off, with their glyphs drawn above it.
+struct CompactBar: View {
+    let commands: [CommandID]
+    let onRun: (CommandID) -> Void
+    @Environment(PaletteState.self) private var palette
+    @Environment(\.metrics) private var metrics
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isRevealed = false
+    /// The chosen button; every button fuses back into the capsule before its screen opens.
+    @State private var merging: CommandID?
+
+    var body: some View {
+        let geometry = CompactBarGeometry(metrics: metrics, count: commands.count)
+        let revealed = isRevealed && merging == nil
+        let capsule = Capsule(style: .continuous)
+        // One container, or the buttons could never bead off the capsule they come out of.
+        GlassEffectContainer(spacing: metrics.scaled(BarMotion.blend)) {
+            ZStack(alignment: .topLeading) {
+                capsule.fill(Theme.Colors.panelScrim)
+                    .frame(width: geometry.capsuleWidth(revealed: revealed))
+                    .frame(maxHeight: .infinity)
+                    .glassEffect(.regular, in: capsule)
+                    .animation(capsuleMotion(revealed: revealed), value: revealed)
+                ForEach(Array(commands.enumerated()), id: \.element) { index, command in
+                    button(command, at: index, geometry: geometry, revealed: revealed)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        }
+        // Above the glass rather than inside it, where a morph would smear them.
+        .overlay(alignment: .topLeading) {
+            ForEach(Array(commands.enumerated()), id: \.element) { index, command in
+                glyph(command, at: index, geometry: geometry, revealed: revealed)
+            }
+        }
+        .task(id: palette.isVisible) { await followVisibility() }
+        .task(id: merging) { await runMerged() }
+    }
+
+    private func button(
+        _ command: CommandID, at index: Int, geometry: CompactBarGeometry, revealed: Bool
+    ) -> some View {
+        Button { activate(command) } label: {
+            Color.clear
+                .frame(width: geometry.diameter, height: geometry.diameter)
+                .contentShape(.circle)
+        }
+        .buttonStyle(.plain)
+        .help(command.name)
+        .accessibilityLabel(command.name)
+        .accessibilityHidden(!revealed)
+        // Faded with its travel, or the parked button would darken the capsule's end.
+        .background(Theme.Colors.panelScrim.opacity(revealed ? 1 : 0), in: .circle)
+        .glassEffect(.regular.interactive(), in: .circle)
+        .scaleEffect(revealed ? 1 : BarMotion.parkedScale)
+        .position(revealed ? geometry.center(of: index) : geometry.parked)
+        .allowsHitTesting(revealed)
+        .animation(travel(index, revealed: revealed), value: revealed)
+    }
+
+    private func glyph(
+        _ command: CommandID, at index: Int, geometry: CompactBarGeometry, revealed: Bool
+    ) -> some View {
+        Image(systemName: command.sfSymbol)
+            .font(metrics.typography.headerIcon)
+            .symbolRenderingMode(.hierarchical)
+            .foregroundStyle(Theme.Colors.textSecondary)
+            .animation(fade(index, revealed: revealed)) {
+                $0.opacity(revealed ? 1 : 0).blur(radius: revealed ? 0 : BarMotion.glyphBlur)
+            }
+            // Shrinks with its circle but never travels: glyphs sent home would pile into one blot.
+            .animation(travel(index, revealed: revealed)) {
+                $0.scaleEffect(revealed ? 1 : BarMotion.parkedScale)
+            }
+            .position(geometry.center(of: index))
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+    }
+
+    /// Out in order, back in reverse, so the last one to leave is the first one home.
+    private func travel(_ index: Int, revealed: Bool) -> Animation? {
+        guard !reduceMotion else { return nil }
+        return revealed
+            ? BarMotion.button.delay(BarMotion.revealDelay + BarMotion.stagger * Double(index))
+            : BarMotion.fuse.delay(BarMotion.stagger * Double(commands.count - 1 - index))
+    }
+
+    /// Shortening waits out the buttons' delay, so they extrude as the capsule pulls back.
+    private func capsuleMotion(revealed: Bool) -> Animation? {
+        guard !reduceMotion else { return nil }
+        return revealed ? BarMotion.capsule.delay(BarMotion.revealDelay) : BarMotion.fuse
+    }
+
+    /// Gone before its circle leaves, since the glyph stays where the circle rested.
+    private func fade(_ index: Int, revealed: Bool) -> Animation? {
+        guard !reduceMotion else { return nil }
+        guard revealed else { return .easeIn(duration: BarMotion.glyphFade / 2) }
+        return .easeOut(duration: BarMotion.glyphFade)
+            .delay(BarMotion.revealDelay + BarMotion.glyphDelay + BarMotion.stagger * Double(index))
+    }
+
+    /// Out on every summon, and parked only once the window has faded, so leaving fades it whole.
+    private func followVisibility() async {
+        guard !palette.isVisible else {
+            isRevealed = true
+            return
+        }
+        try? await Task.sleep(for: BarMotion.parkAfterHide)
+        guard !Task.isCancelled else { return }
+        withTransaction(\.disablesAnimations, true) { isRevealed = false }
+    }
+
+    private func activate(_ command: CommandID) {
+        guard Motion.isEnabled, !reduceMotion else {
+            onRun(command)
+            return
+        }
+        merging = command
+    }
+
+    private func runMerged() async {
+        guard let command = merging else { return }
+        try? await Task.sleep(for: BarMotion.merge)
+        guard !Task.isCancelled else { return }
+        if palette.isVisible { onRun(command) }
+        merging = nil
+    }
+}

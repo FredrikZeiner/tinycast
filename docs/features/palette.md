@@ -250,11 +250,11 @@ the user choose them later replaces it rather than adding a second. A button run
 through `LauncherCoordinator.runCommand`, exactly as the launcher row would, so a screen it opens
 is pushed over the root search and Escape steps back.
 
-The `GlassEffectContainer` around the header is **always mounted**, expanded included: wrapping the
-field only while compact would put it inside a branch and tear its editor down on the first
-keystroke. Expanded, it holds no glass of its own and changes nothing. The dialog dimming is skipped
-while compact, since the window between the shapes is transparent and a dimming layer would fill it.
-See [ui.md](../ui.md#panel-structure) for the shapes and the reveal.
+The glass is a background of the header, not a wrapper around it: the field keeps its one structural
+position, and a container never paints its merged glass over the row. While compact the row is
+narrowed to the capsule, and so is the top drag strip, so neither reaches under a button. The dialog
+dimming is skipped while compact, since the window between the shapes is transparent and a dimming
+layer would fill it. See [ui.md](../ui.md#panel-structure) for the shapes and the reveal.
 
 ## Window placement
 

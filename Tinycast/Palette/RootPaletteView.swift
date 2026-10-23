@@ -329,7 +329,7 @@ struct RootPaletteView: View {
                     }
                 }
                 // No title bar, so this thin top margin is the only place left to grab the panel.
-                .overlay(alignment: .top) { topDragStrip }
+                .overlay(alignment: .topLeading) { topDragStrip }
                 // The menu lives in its own window; this only reports the one to hang it from.
                 .background(
                     WindowReader {
@@ -354,9 +354,7 @@ struct RootPaletteView: View {
                             ? Theme.Duration.dialogEnter : Theme.Duration.dialogExit),
                     value: core.isDimmingPaletteForDialog
                 )
-                .clipShape(
-                    RoundedRectangle(
-                        cornerRadius: isCollapsed ? 0 : metrics.radius.panel, style: .continuous))),
+                .clipShape(RoundedRectangle(cornerRadius: metrics.radius.panel, style: .continuous))),
             selection: sel)
     }
 
@@ -650,7 +648,8 @@ struct RootPaletteView: View {
 
     private var topDragStrip: some View {
         Color.clear
-            .frame(height: metrics.size.headerPadding)
+            // Compact, it stops at the capsule, so a button keeps its whole press.
+            .frame(width: compactCapsuleWidth, height: metrics.size.headerPadding)
             .windowDraggable(settings.paletteDraggable, onBegan: beginDrag, onEnded: endDrag)
     }
 
@@ -671,19 +670,16 @@ struct RootPaletteView: View {
     }
 
     private var header: some View {
-        let commands = isCollapsed ? compactCommands : []
-        // Always mounted: wrapping the field only while compact would tear its editor down.
-        return GlassEffectContainer(spacing: metrics.spacing.lg) {
-            HStack(spacing: metrics.spacing.lg) {
-                headerBar
-                if !commands.isEmpty {
-                    CompactCommandsRow(commands: commands) {
-                        core.launcherCoordinator.runCommand($0)
-                    }
+        headerBar
+            // The field stops where the capsule will, so it never runs under a button.
+            .frame(width: compactCapsuleWidth)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            // Behind the row, which a glass container would otherwise paint over.
+            .background(alignment: .topLeading) {
+                if isCollapsed {
+                    CompactBar(commands: compactCommands) { core.launcherCoordinator.runCommand($0) }
                 }
             }
-        }
-        .frame(maxWidth: .infinity)
         // Next turn, once the show's `land()` and search refocus are done, so neither undoes it.
         .onChange(of: vm.pendingArgumentEntryID) {
             Task { @MainActor in focusPendingArgument() }
@@ -694,6 +690,13 @@ struct RootPaletteView: View {
 
     private var compactCommands: [CommandID] {
         CommandID.compactBarCommands.filter(appIndex.isCommandEnabled)
+    }
+
+    /// Where the compact capsule ends beside its buttons; nil while expanded.
+    private var compactCapsuleWidth: CGFloat? {
+        guard isCollapsed else { return nil }
+        return CompactBarGeometry(metrics: metrics, count: compactCommands.count)
+            .capsuleWidth(revealed: true)
     }
 
     private var headerBar: some View {
@@ -777,9 +780,6 @@ struct RootPaletteView: View {
         .padding(.top, metrics.size.headerPadding)
         .padding(.bottom, isCollapsed ? metrics.size.headerPadding : 0)
         .frame(maxWidth: .infinity)
-        .background(isCollapsed ? Theme.Colors.panelScrim : .clear, in: Capsule(style: .continuous))
-        // Around the row, never behind it: the container draws its merged glass over loose content.
-        .glassEffect(isCollapsed ? .regular : .identity, in: Capsule(style: .continuous))
     }
 
     /// Mode-gated ahead of the cast, which would otherwise cost every other mode a list build.
