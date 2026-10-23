@@ -241,6 +241,21 @@ The flat `selection` index is the single source of truth for highlight / activat
 match the visible row order**, including the card at index 0 when present — the calculator's (see
 [calculator.md](calculator.md)) or the meeting join card (see [calendar.md](calendar.md)), never both.
 
+## The compact bar
+
+Compact is the launcher with an empty query, drawn as glass shapes over a bare window: the header
+row in a capsule, then one round button per entry of `CommandID.compactBarCommands` whose feature
+`AppIndex.isCommandEnabled` reports on. That list is the one place the slots are named, so letting
+the user choose them later replaces it rather than adding a second. A button runs its command
+through `LauncherCoordinator.runCommand`, exactly as the launcher row would, so a screen it opens
+is pushed over the root search and Escape steps back.
+
+The `GlassEffectContainer` around the header is **always mounted**, expanded included: wrapping the
+field only while compact would put it inside a branch and tear its editor down on the first
+keystroke. Expanded, it holds no glass of its own and changes nothing. The dialog dimming is skipped
+while compact, since the window between the shapes is transparent and a dimming layer would fill it.
+See [ui.md](../ui.md#panel-structure) for the shapes and the reveal.
+
 ## Window placement
 
 `PaletteWindowController` resolves an anchor (left edge + top edge) **once per summon** and reuses it
@@ -554,8 +569,8 @@ handled in `PalettePanel.sendEvent` before `super` hands the event to the respon
 - **Chords with no main menu item** — ⌘, and ⌘w, which an app with a menu bar would never see here.
 - **The physical number-row slots.** `FavoriteSlots` matches ⌘1…⌘0 by key code before fixed command
   chords, then publishes the resolved position to the active screen. Only the launcher and clipboard
-  screens intercept these slots; other screens keep their own ⌘-number shortcuts. The launcher's
-  compact visibility setting is visual only and does not disable its favorite slots.
+  screens intercept these slots; other screens keep their own ⌘-number shortcuts. The compact bar
+  shows no favorites, but its slots still launch them.
 - **Chords AppKit has already bound to a selector.** `⌘.` is the one that bites: AppKit binds it to
   `cancelOperation:` alongside Escape, so `interpretKeyEvents` hands it to the field editor and
   `onKeyPress(keys: ["."])` never fires. Pin (⌘.) therefore arrives through `onCommandShortcut`,

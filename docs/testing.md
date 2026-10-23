@@ -434,6 +434,10 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   the window, and reopening lands on the root search whatever Pop to Root Search says
 - Reopening focuses the search field with an empty query, in the same position and at the same size
 - Compact mode: typing expands it, and the search bar does **not** shift vertically during the swap
+- Compact mode: a round button per enabled feature among Clipboard, Files, Snippets and Quicklinks; the
+  capsule fills the rest, the whole width with none on. Each summon and each cleared query buds them out
+  of the capsule's end; with Show animations off they appear in place. A click opens that screen and
+  Escape returns to the bar
 - With a CJK IME: the placeholder clears as soon as composition starts and the composing text never
   overlaps it; cancelling composition brings the placeholder back, and the list filters only once the
   candidate is committed — check on a second summon too, where first responder never moved

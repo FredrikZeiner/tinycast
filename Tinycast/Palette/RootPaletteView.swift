@@ -339,11 +339,13 @@ struct RootPaletteView: View {
                 )
                 // The window's frame is the size source, so the glass and clip stay matched.
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                .background(Theme.Colors.panelScrim)
-                .background(GlassEffectView())
+                // Compact, the bar's own glass shapes are the surface and the window is bare.
+                .background(isCollapsed ? .clear : Theme.Colors.panelScrim)
+                // Hidden rather than unmounted, so expanding never shows a frame without glass.
+                .background(GlassEffectView().opacity(isCollapsed ? 0 : 1))
                 .overlay {
                     Theme.Colors.dialogDimming
-                        .opacity(core.isDimmingPaletteForDialog ? 1 : 0)
+                        .opacity(core.isDimmingPaletteForDialog && !isCollapsed ? 1 : 0)
                         .allowsHitTesting(false)
                 }
                 .animation(
@@ -352,7 +354,9 @@ struct RootPaletteView: View {
                             ? Theme.Duration.dialogEnter : Theme.Duration.dialogExit),
                     value: core.isDimmingPaletteForDialog
                 )
-                .clipShape(RoundedRectangle(cornerRadius: metrics.radius.panel, style: .continuous))),
+                .clipShape(
+                    RoundedRectangle(
+                        cornerRadius: isCollapsed ? 0 : metrics.radius.panel, style: .continuous))),
             selection: sel)
     }
 
@@ -667,6 +671,32 @@ struct RootPaletteView: View {
     }
 
     private var header: some View {
+        let commands = isCollapsed ? compactCommands : []
+        // Always mounted: wrapping the field only while compact would tear its editor down.
+        return GlassEffectContainer(spacing: metrics.spacing.lg) {
+            HStack(spacing: metrics.spacing.lg) {
+                headerBar
+                if !commands.isEmpty {
+                    CompactCommandsRow(commands: commands) {
+                        core.launcherCoordinator.runCommand($0)
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+        // Next turn, once the show's `land()` and search refocus are done, so neither undoes it.
+        .onChange(of: vm.pendingArgumentEntryID) {
+            Task { @MainActor in focusPendingArgument() }
+        }
+        .onChange(of: argumentFocused) { _, field in vm.noteEditingField(field != nil) }
+        .onChange(of: quickAI.pendingAttachments.map(\.id)) { refreshAttachmentsMenu() }
+    }
+
+    private var compactCommands: [CommandID] {
+        CommandID.compactBarCommands.filter(appIndex.isCommandEnabled)
+    }
+
+    private var headerBar: some View {
         HStack(alignment: .center, spacing: 0) {
             // Matches the list rows and section headers' own indent below.
             headerGutter(width: metrics.spacing.md * 2)
@@ -732,20 +762,6 @@ struct RootPaletteView: View {
                         action: toggleAIReasoning)
                 }
             }
-            if isCollapsed, settings.showFavoritesInCompactMode,
-                let launcher = screen as? LauncherScreen
-            {
-                let favorites = launcher.compactFavorites
-                if !favorites.isEmpty {
-                    headerGutter(width: metrics.spacing.md)
-                    CompactFavoritesRow(
-                        favorites: favorites,
-                        showsOverflow: launcher.hasUnshownFavorites,
-                        onLaunch: { core.launcherCoordinator.launch($0) },
-                        onOverflow: { core.paletteCoordinator.expandFromCompact() }
-                    )
-                }
-            }
             if !isCollapsed, let command = extensionCommandScreen,
                 let accessory = command.searchAccessory
             {
@@ -759,13 +775,11 @@ struct RootPaletteView: View {
         // Identical metrics in both states, so typing can't move the search bar.
         .frame(height: metrics.size.headerHeight)
         .padding(.top, metrics.size.headerPadding)
+        .padding(.bottom, isCollapsed ? metrics.size.headerPadding : 0)
         .frame(maxWidth: .infinity)
-        // Next turn, once the show's `land()` and search refocus are done, so neither undoes it.
-        .onChange(of: vm.pendingArgumentEntryID) {
-            Task { @MainActor in focusPendingArgument() }
-        }
-        .onChange(of: argumentFocused) { _, field in vm.noteEditingField(field != nil) }
-        .onChange(of: quickAI.pendingAttachments.map(\.id)) { refreshAttachmentsMenu() }
+        .background(isCollapsed ? Theme.Colors.panelScrim : .clear, in: Capsule(style: .continuous))
+        // Around the row, never behind it: the container draws its merged glass over loose content.
+        .glassEffect(isCollapsed ? .regular : .identity, in: Capsule(style: .continuous))
     }
 
     /// Mode-gated ahead of the cast, which would otherwise cost every other mode a list build.

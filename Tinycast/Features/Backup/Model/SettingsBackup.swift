@@ -40,7 +40,6 @@ struct SettingsBackup: Codable {
         var calcNumberStyle: String?
         var interfaceSize: String?
         var compactMode: Bool?
-        var showFavoritesInCompactMode: Bool?
         var searchScopes: [String]?
         var launcherShowsSuggestions: Bool?
         var rootSearchSensitivity: String?
@@ -155,7 +154,6 @@ extension SettingsBackup {
             calcNumberStyle: s.calcNumberStyle.rawValue,
             interfaceSize: s.interfaceSize.rawValue,
             compactMode: s.compactMode,
-            showFavoritesInCompactMode: s.showFavoritesInCompactMode,
             searchScopes: s.searchScopes,
             launcherShowsSuggestions: s.launcherShowsSuggestions,
             rootSearchSensitivity: s.rootSearchSensitivity.rawValue,
@@ -387,10 +385,6 @@ extension SettingsBackup {
         }
         if let flag = s.compactMode {
             settings.compactMode = flag
-            count += 1
-        }
-        if let flag = s.showFavoritesInCompactMode {
-            settings.showFavoritesInCompactMode = flag
             count += 1
         }
         if let scopes = s.searchScopes {

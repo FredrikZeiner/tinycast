@@ -110,7 +110,6 @@ unplug a monitor. Positions aren't included in backups, since they don't carry o
 | Interface size                 | Default · Large · Larger               | **Default** |
 | Background transparency        | A slider from Less to More, with Reset | Middle      |
 | Compact mode                   | On · Off                               | Off         |
-| Show favorites in compact mode | On · Off                               | On          |
 
 **Theme.** System follows macOS whenever it changes. Light uses the same design with inverted
 colors, and the layout, type and animations stay the same.
@@ -122,8 +121,9 @@ stays the same size.
 the original look.
 
 **Compact mode** opens the launcher as a slim search bar that expands into the full list as you
-type. <kbd>↓</kbd> expands it and selects the first row. With **Show favorites in compact mode** on,
-your favorite apps appear at the right of the bar. See [Favorites](/docs/launcher/favorites).
+type. <kbd>↓</kbd> expands it and selects the first row. Round buttons beside the bar open Clipboard
+History, Search Files, Search Snippets and Search Quicklinks. Each appears only while its feature is
+on.
 
 The [Toggle System Appearance](/docs/launcher/system-actions) action changes the appearance of
 _macOS itself_. Tinycast follows it only while its own theme is set to System.

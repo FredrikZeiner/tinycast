@@ -49,6 +49,11 @@ enum CommandID: String, CaseIterable, Sendable {
     case support = "command:support"
     case quit = "command:quit"
 
+    /// The compact bar's round buttons, in order; a feature switched off drops its own.
+    static let compactBarCommands: [CommandID] = [
+        .clipboardHistory, .searchFiles, .searchSnippets, .searchQuicklinks,
+    ]
+
     var name: String { nameResource.resolved() }
 
     var englishName: String { nameResource.key }

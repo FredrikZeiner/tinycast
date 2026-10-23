@@ -91,8 +91,8 @@ enum Theme {
         static let headerIconSlot: CGFloat = 22
         /// The narrowest a strip squeezes the search field to: the caret and a few characters.
         static let searchFieldMinWidth: CGFloat = 60
-        /// Room above the search row, constant so typing never shifts the bar.
-        static let headerPadding: CGFloat = 10
+        /// Room above the search row; it makes the compact bar exactly twice the panel's radius.
+        static let headerPadding: CGFloat = Radius.panel - headerHeight / 2
         static let compactHeight: CGFloat = headerHeight + headerPadding * 2
         /// How close a dragged palette must be to the invisible vertical centre line.
         static let paletteSnapDistance: CGFloat = 8
@@ -327,6 +327,13 @@ enum Theme {
     enum RoomMotion {
         /// Quick to leave, long to settle, so a card reads as the window it is about to become.
         static let glide = Animation.timingCurve(0.2, 0, 0, 1, duration: Theme.Duration.roomGlide)
+    }
+
+    enum CompactBarMotion {
+        /// Each button leaves the search capsule a beat after the one nearer to it.
+        static func reveal(_ slot: Int) -> Animation {
+            .spring(duration: 0.5, bounce: 0.25).delay(Double(slot) * 0.04)
+        }
     }
 
     enum MenuMotion {
