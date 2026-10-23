@@ -86,8 +86,8 @@ enum Theme {
         static let noteTrafficLightInset: CGFloat = 20
         /// Fraction of visible height above the palette's top edge; it grows downward.
         static let paletteTopMarginFraction: CGFloat = 0.18
-        /// The search row; inside its padding, the compact bar is exactly twice the panel's radius.
-        static let headerHeight: CGFloat = Radius.panel * 2 - headerPadding * 2
+        /// The search row; padded alike above and below, it is the compact bar's whole height.
+        static let headerHeight: CGFloat = 36
         /// Fixed slot for the header glyph, so the field starts at one x in every mode.
         static let headerIconSlot: CGFloat = 22
         /// The narrowest a strip squeezes the search field to: the caret and a few characters.
