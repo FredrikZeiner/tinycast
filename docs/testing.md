@@ -443,8 +443,12 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Compact mode: a round button per enabled configured shortcut; the
   capsule fills the rest, the whole width with none on. Each summon and each cleared query buds them out
   of the capsule's end, the last one never clipped at the window's edge; with Show animations off they
-  appear in place. Mouse and keyboard activation fuse them back, then open the command; closing or
-  navigating during the merge never runs a stale command after reopening. Show Notes opens its window
+  appear in place. Mouse and keyboard activation open the command immediately, without a fuse,
+  delayed reveal or shortcut shapes beneath the expanded panel. Show Notes opens its window
+- Compact mode: keyboard selection has a clear filled highlight and brighter glyph, without a ring;
+  Emoji & Symbols uses the same outlined glyph as the launcher in both Light and Dark
+- Compact Shortcuts settings: command names sit beside their icons; replacement menus and borderless
+  move/remove controls work without stretching the labels across the row
 - The expanded header leaves even room above the query and below it, before the first section
 - With a CJK IME: the placeholder clears as soon as composition starts and the composing text never
   overlaps it; cancelling composition brings the placeholder back, and the list filters only once the

@@ -39,7 +39,6 @@ struct CompactBarGeometry {
 struct CompactBar: View {
     let commands: [CommandID]
     let selection: CommandID?
-    @Binding var merging: CommandID?
     let onRun: (CommandID) -> Void
     @Environment(PaletteState.self) private var palette
     @Environment(\.metrics) private var metrics
@@ -48,7 +47,7 @@ struct CompactBar: View {
 
     var body: some View {
         let geometry = CompactBarGeometry(metrics: metrics, count: commands.count)
-        let revealed = isRevealed && merging == nil
+        let revealed = isRevealed
         let capsule = Capsule(style: .continuous)
         // One container, or the buttons could never bead off the capsule they come out of.
         GlassEffectContainer(spacing: metrics.scaled(BarMotion.blend)) {
@@ -57,7 +56,9 @@ struct CompactBar: View {
                     .frame(width: geometry.capsuleWidth(revealed: revealed))
                     .frame(maxHeight: .infinity)
                     .glassEffect(.regular, in: capsule)
-                    .animation(capsuleMotion(revealed: revealed), value: revealed)
+                    .animation(
+                        reduceMotion ? nil : BarMotion.capsule.delay(BarMotion.revealDelay),
+                        value: revealed)
                 ForEach(Array(commands.enumerated()), id: \.element) { index, command in
                     button(command, at: index, geometry: geometry, revealed: revealed)
                 }
@@ -71,14 +72,13 @@ struct CompactBar: View {
             }
         }
         .task(id: palette.isVisible) { await followVisibility() }
-        .task(id: merging) { await runMerged() }
     }
 
     private func button(
         _ command: CommandID, at index: Int, geometry: CompactBarGeometry, revealed: Bool
     ) -> some View {
         Button {
-            activate(command)
+            onRun(command)
         } label: {
             Color.clear
                 .frame(width: geometry.diameter, height: geometry.diameter)
@@ -94,26 +94,25 @@ struct CompactBar: View {
         .background(Theme.Colors.panelScrim.opacity(revealed ? 1 : 0), in: .circle)
         .glassEffect(.regular.interactive(), in: .circle)
         .overlay {
-            Circle().strokeBorder(selection == command ? Theme.Colors.textSecondary : .clear)
+            Circle().fill(selection == command ? Theme.Colors.controlPressed : .clear)
         }
         .scaleEffect(revealed ? 1 : BarMotion.parkedScale)
         .position(revealed ? geometry.center(of: index) : geometry.parked)
         .allowsHitTesting(revealed)
-        .animation(travel(index, revealed: revealed), value: revealed)
+        .animation(travel(index), value: revealed)
     }
 
     private func glyph(
         _ command: CommandID, at index: Int, geometry: CompactBarGeometry, revealed: Bool
     ) -> some View {
-        Image(systemName: command.sfSymbol)
-            .font(metrics.typography.headerIcon)
-            .symbolRenderingMode(.hierarchical)
-            .foregroundStyle(Theme.Colors.textSecondary)
-            .animation(fade(index, revealed: revealed)) {
+        SymbolImage(name: command.sfSymbol, size: metrics.scaled(Theme.Typography.headerIconSize))
+            .environment(\.symbolVariants, .none)
+            .foregroundStyle(selection == command ? Theme.Colors.textPrimary : Theme.Colors.textSecondary)
+            .animation(fade(index)) {
                 $0.opacity(revealed ? 1 : 0).blur(radius: revealed ? 0 : BarMotion.glyphBlur)
             }
             // Shrinks with its circle but never travels: glyphs sent home would pile into one blot.
-            .animation(travel(index, revealed: revealed)) {
+            .animation(travel(index)) {
                 $0.scaleEffect(revealed ? 1 : BarMotion.parkedScale)
             }
             .position(geometry.center(of: index))
@@ -121,24 +120,13 @@ struct CompactBar: View {
             .accessibilityHidden(true)
     }
 
-    /// Out in order, back in reverse, so the last one to leave is the first one home.
-    private func travel(_ index: Int, revealed: Bool) -> Animation? {
+    private func travel(_ index: Int) -> Animation? {
         guard !reduceMotion else { return nil }
-        return revealed
-            ? BarMotion.button.delay(BarMotion.revealDelay + BarMotion.stagger * Double(index))
-            : BarMotion.fuse.delay(BarMotion.stagger * Double(commands.count - 1 - index))
+        return BarMotion.button.delay(BarMotion.revealDelay + BarMotion.stagger * Double(index))
     }
 
-    /// Shortening waits out the buttons' delay, so they extrude as the capsule pulls back.
-    private func capsuleMotion(revealed: Bool) -> Animation? {
+    private func fade(_ index: Int) -> Animation? {
         guard !reduceMotion else { return nil }
-        return revealed ? BarMotion.capsule.delay(BarMotion.revealDelay) : BarMotion.fuse
-    }
-
-    /// Gone before its circle leaves, since the glyph stays where the circle rested.
-    private func fade(_ index: Int, revealed: Bool) -> Animation? {
-        guard !reduceMotion else { return nil }
-        guard revealed else { return .easeIn(duration: BarMotion.glyphFade / 2) }
         return .easeOut(duration: BarMotion.glyphFade)
             .delay(BarMotion.revealDelay + BarMotion.glyphDelay + BarMotion.stagger * Double(index))
     }
@@ -152,25 +140,5 @@ struct CompactBar: View {
         try? await Task.sleep(for: .seconds(Motion.duration(BarMotion.parkAfterHide)))
         guard !Task.isCancelled else { return }
         withTransaction(\.disablesAnimations, true) { isRevealed = false }
-    }
-
-    private func activate(_ command: CommandID) {
-        guard merging == nil else { return }
-        merging = command
-    }
-
-    /// With animations off the wait is zero, so the screen opens on the next turn.
-    private func runMerged() async {
-        guard let command = merging else { return }
-        let presentation = palette.focusToken
-        let reset = palette.resetToken
-        if !reduceMotion {
-            try? await Task.sleep(for: .seconds(Motion.duration(BarMotion.merge)))
-        }
-        guard !Task.isCancelled, palette.isVisible, palette.focusToken == presentation,
-            palette.resetToken == reset, merging == command, commands.contains(command)
-        else { return }
-        merging = nil
-        onRun(command)
     }
 }

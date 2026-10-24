@@ -260,10 +260,14 @@ selected button. Typing, pasting or clicking Search resets the selection. The Ap
 boundary-arrow hook handles navigation without moving input focus away from Search; marked IME text
 and modified arrows retain their normal editing behavior.
 
-Mouse and keyboard activation share `CompactBar`'s merge animation and
-`LauncherCoordinator.runCommand`. Repeated activation is ignored during the merge, and hide,
-navigation or configuration changes cancel it. Palette screens push over root search as before;
-Show Notes closes the palette and opens its existing window.
+Keyboard selection uses a filled circle and primary-contrast glyph, without an outline. Symbols use
+`SymbolImage`, including the appearance-aware outline for Emoji & Symbols. Settings keeps each icon
+beside its name in a command menu, with borderless move/remove controls at the trailing edge.
+
+Mouse and keyboard activation synchronously call `LauncherCoordinator.runCommand` in a transaction
+with animations disabled. No merge animation or delayed activation survives beneath the destination
+screen. Palette screens push over root search as before; Show Notes closes the palette and opens
+its existing window. The summon reveal still animates independently.
 
 At expanded launcher root, Escape clears the query while setting `forceExpanded`, so clearing and
 collapsing remain separate presses. The next Escape clears that flag and collapses; another closes.

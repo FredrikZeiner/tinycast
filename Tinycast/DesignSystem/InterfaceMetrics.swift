@@ -160,7 +160,7 @@ struct InterfaceMetrics: Equatable, Sendable {
         var headerIcon: Font {
             scale == 1
                 ? Theme.Typography.headerIcon
-                : .system(size: scaledPoints(18, scale), weight: .medium)
+                : .system(size: scaledPoints(Theme.Typography.headerIconSize, scale), weight: .medium)
         }
 
         var rowTitle: Font { font(Theme.Typography.rowTitle, .body) }

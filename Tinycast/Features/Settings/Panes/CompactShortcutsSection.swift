@@ -8,16 +8,23 @@ struct CompactShortcutsSection: View {
             ForEach(settings.compactBarCommands, id: \.self) { command in
                 shortcut(command)
             }
-            Menu("Add Shortcut", systemImage: "plus") {
+            Menu {
                 ForEach(availableCommands, id: \.self) { command in
-                    Button(command.name, systemImage: command.sfSymbol) {
+                    Button {
                         guard settings.compactBarCommands.count < CommandID.compactBarLimit,
                             !settings.compactBarCommands.contains(command)
                         else { return }
                         settings.compactBarCommands.append(command)
+                    } label: {
+                        commandLabel(command)
                     }
                 }
+            } label: {
+                Label("Add Shortcut", systemImage: "plus")
             }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
             .disabled(settings.compactBarCommands.count >= CommandID.compactBarLimit)
         } header: {
             SettingsSectionHeader(.generalCompactShortcuts)
@@ -29,37 +36,55 @@ struct CompactShortcutsSection: View {
     }
 
     private func shortcut(_ command: CommandID) -> some View {
-        HStack {
-            Picker(selection: binding(for: command)) {
+        HStack(spacing: Theme.Spacing.lg) {
+            Menu {
                 ForEach(CommandID.compactBarOptions, id: \.self) { option in
                     if option == command || !settings.compactBarCommands.contains(option) {
-                        Text(option.name).tag(option)
+                        Button {
+                            replace(command, with: option)
+                        } label: {
+                            commandLabel(option)
+                        }
                     }
                 }
             } label: {
-                Image(systemName: command.sfSymbol)
+                commandLabel(command)
             }
-            .accessibilityLabel(command.name)
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.visible)
+            .fixedSize()
+            Spacer(minLength: Theme.Spacing.lg)
             Button("Move Up", systemImage: "chevron.up") { move(command, by: -1) }
+                .help("Move Up")
                 .disabled(settings.compactBarCommands.first == command)
             Button("Move Down", systemImage: "chevron.down") { move(command, by: 1) }
+                .help("Move Down")
                 .disabled(settings.compactBarCommands.last == command)
             Button("Remove", systemImage: "minus") {
                 settings.compactBarCommands.removeAll { $0 == command }
             }
+            .help("Remove")
         }
+        .buttonStyle(.borderless)
         .labelStyle(.iconOnly)
     }
 
-    private func binding(for command: CommandID) -> Binding<CommandID> {
-        Binding(
-            get: { command },
-            set: { replacement in
-                guard let index = settings.compactBarCommands.firstIndex(of: command),
-                    !settings.compactBarCommands.contains(replacement)
-                else { return }
-                settings.compactBarCommands[index] = replacement
-            })
+    private func commandLabel(_ command: CommandID) -> some View {
+        Label {
+            Text(command.name)
+        } icon: {
+            SymbolImage(name: command.sfSymbol, size: Theme.Size.settingsRowIcon)
+                .environment(\.symbolVariants, .none)
+                .foregroundStyle(.secondary)
+        }
+        .labelStyle(.titleAndIcon)
+    }
+
+    private func replace(_ command: CommandID, with replacement: CommandID) {
+        guard let index = settings.compactBarCommands.firstIndex(of: command),
+            !settings.compactBarCommands.contains(replacement)
+        else { return }
+        settings.compactBarCommands[index] = replacement
     }
 
     private func move(_ command: CommandID, by step: Int) {

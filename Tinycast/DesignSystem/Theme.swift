@@ -345,15 +345,12 @@ enum Theme {
         static let glyphDelay: TimeInterval = 0.24
         static let glyphFade: TimeInterval = 0.16
         static let glyphBlur: CGFloat = 4
-        /// A chosen button fuses back into the capsule before its screen opens.
-        static let merge: TimeInterval = 0.2
         /// Past the window's own close animation, so parking the buttons is never seen.
         static let parkAfterHide: TimeInterval = 0.3
         /// The capsule undershoots as it shortens, then settles.
         static let capsule = Animation.spring(response: 0.44, dampingFraction: 0.62)
         /// The buttons barely overshoot: the last rests on the window's edge, which would clip it.
         static let button = Animation.spring(response: 0.44, dampingFraction: 0.86)
-        static let fuse = Animation.spring(response: 0.3, dampingFraction: 0.82)
     }
 
     enum MenuMotion {
@@ -369,7 +366,8 @@ enum Theme {
         /// `NSFont` is not `Sendable`, hence the isolation; every reader is a view anyway.
         @MainActor static let searchFieldNSFont = NSFont.systemFont(
             ofSize: searchFieldSize, weight: .regular)
-        static let headerIcon = Font.system(size: 18, weight: .medium)
+        static let headerIconSize: CGFloat = 18
+        static let headerIcon = Font.system(size: headerIconSize, weight: .medium)
         static let rowTitle = Font.body
         static let rowTrailing = Font.callout
         static let sectionHeader = Font.subheadline.weight(.medium)

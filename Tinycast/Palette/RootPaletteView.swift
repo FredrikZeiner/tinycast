@@ -43,7 +43,6 @@ struct RootPaletteView: View {
     /// The pending scroll request; modes are exclusive, so one piece of state serves all.
     @State private var scroll = ScrollIntent(kind: .top)
     @State private var compactSelection = CompactBarSelection()
-    @State private var compactActivation: CommandID?
 
     /// Compact vs. full; the source of truth is on `AppCore`, so the two can't disagree.
     private var isCollapsed: Bool { core.paletteCoordinator.paletteIsCollapsed }
@@ -401,7 +400,6 @@ struct RootPaletteView: View {
             }
             .onChange(of: compactCommands) {
                 compactSelection.reconcile(commands: compactCommands)
-                compactActivation = nil
             }
             // A preserved screen re-summons as it was left, so a menu must end with the palette.
             .modifier(PaletteHideObserver { if menuOpen { closeMenus() } })
@@ -708,11 +706,7 @@ struct RootPaletteView: View {
                 if isCollapsed {
                     CompactBar(
                         commands: compactCommands, selection: compactSelection.command,
-                        merging: $compactActivation
-                    ) { command in
-                        guard isCollapsed, vm.isVisible, compactCommands.contains(command) else { return }
-                        core.launcherCoordinator.runCommand(command)
-                    }
+                        onRun: runCompactCommand)
                 }
             }
             // Next turn, once the show's `land()` and search refocus are done, so neither undoes it.
@@ -729,7 +723,6 @@ struct RootPaletteView: View {
 
     private func resetCompactSelection() {
         compactSelection.command = nil
-        compactActivation = nil
     }
 
     private func moveCompactSelection(_ step: Int, modifiers: EventModifiers = []) -> Bool {
@@ -737,16 +730,20 @@ struct RootPaletteView: View {
             !vm.isControlListOpen,
             modifiers.isDisjoint(with: [.command, .control, .option, .shift])
         else { return false }
-        guard compactActivation == nil else { return true }
         compactSelection.move(by: step, commands: compactCommands)
         return true
     }
 
     private func activateCompactSelection() {
-        guard compactActivation == nil, let command = compactSelection.command,
-            compactCommands.contains(command)
-        else { return }
-        compactActivation = command
+        guard let command = compactSelection.command else { return }
+        runCompactCommand(command)
+    }
+
+    private func runCompactCommand(_ command: CommandID) {
+        guard isCollapsed, vm.isVisible, compactCommands.contains(command) else { return }
+        withTransaction(\.disablesAnimations, true) {
+            core.launcherCoordinator.runCommand(command)
+        }
     }
 
     /// Where the compact capsule ends beside its buttons; nil while expanded.
