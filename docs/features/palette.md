@@ -260,11 +260,11 @@ selected button. Typing, pasting or clicking Search resets the selection. The Ap
 boundary-arrow hook handles navigation without moving input focus away from Search; marked IME text
 and modified arrows retain their normal editing behavior.
 
-Keyboard selection uses a filled circle and primary-contrast glyph, without an outline. Symbols use
+Keyboard selection uses a filled circle and white monochrome glyph, without an outline. Symbols use
 `SymbolImage`, including the appearance-aware outline for Emoji & Symbols. Settings keeps each icon
 beside its name in a command menu, with borderless move/remove controls at the trailing edge.
-In Light, the selection fill sits behind the glyph above `GlassEffectContainer`; a fill inside the
-container is washed out by the native material. Dark retains its existing glass treatment.
+The contrast fill sits behind the glyph above `GlassEffectContainer`, where the material cannot wash
+it out. Light uses a medium gray fill; Dark adds a subtle white wash over its existing glass selection.
 
 Mouse and keyboard activation synchronously call `LauncherCoordinator.runCommand` in a transaction
 with animations disabled. No merge animation or delayed activation survives beneath the destination

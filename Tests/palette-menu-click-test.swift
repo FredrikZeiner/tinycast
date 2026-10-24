@@ -223,7 +223,9 @@ struct PaletteMenuClickTests {
             return
         }
         var boundaries: [PalettePanel.HeaderFieldBoundary] = []
-        panel.onHeaderFieldBoundaryArrow = { boundaries.append($0); return true }
+        panel.onHeaderFieldBoundaryArrow = {
+            boundaries.append($0); return true
+        }
         defer { panel.onHeaderFieldBoundaryArrow = nil }
 
         func send(_ code: Int, modifiers: NSEvent.ModifierFlags = []) {
@@ -246,14 +248,16 @@ struct PaletteMenuClickTests {
         check(boundaries.count == 2, "arrows inside text stay with the caret")
         editor.setSelectedRange(NSRange(location: 3, length: 0))
         send(kVK_RightArrow)
-        check(boundaries.last == .trailing && boundaries.count == 3,
+        check(
+            boundaries.last == .trailing && boundaries.count == 3,
             "Right reaches the header handler at the text boundary")
         editor.setSelectedRange(NSRange(location: 0, length: 3))
         send(kVK_RightArrow)
         check(boundaries.count == 3, "selected text collapses before boundary navigation")
         send(kVK_RightArrow, modifiers: .shift)
         check(boundaries.count == 3, "modified arrows retain their text editing behavior")
-        editor.setMarkedText("あ", selectedRange: NSRange(location: 1, length: 0),
+        editor.setMarkedText(
+            "あ", selectedRange: NSRange(location: 1, length: 0),
             replacementRange: NSRange(location: 0, length: 3))
         send(kVK_RightArrow)
         check(boundaries.count == 3, "marked IME text owns boundary arrows")

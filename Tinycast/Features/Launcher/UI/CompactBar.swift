@@ -96,7 +96,7 @@ struct CompactBar: View {
         .glassEffect(.regular.interactive(), in: .circle)
         .overlay {
             if colorScheme == .dark {
-                Circle().fill(selection == command ? Theme.Colors.compactShortcutSelection : .clear)
+                Circle().fill(selection == command ? Theme.Colors.compactShortcutGlassSelection : .clear)
             }
         }
         .scaleEffect(revealed ? 1 : BarMotion.parkedScale)
@@ -108,26 +108,31 @@ struct CompactBar: View {
     private func glyph(
         _ command: CommandID, at index: Int, geometry: CompactBarGeometry, revealed: Bool
     ) -> some View {
-        SymbolImage(name: command.sfSymbol, size: metrics.scaled(Theme.Typography.headerIconSize))
-            .environment(\.symbolVariants, .none)
-            .foregroundStyle(selection == command ? Theme.Colors.textPrimary : Theme.Colors.textSecondary)
-            .animation(fade(index)) {
-                $0.opacity(revealed ? 1 : 0).blur(radius: revealed ? 0 : BarMotion.glyphBlur)
+        SymbolImage(
+            name: command.sfSymbol, size: metrics.scaled(Theme.Typography.headerIconSize),
+            monochrome: selection == command
+        )
+        .environment(\.symbolVariants, .none)
+        .foregroundStyle(
+            selection == command ? Theme.Colors.compactShortcutSelectedInk : Theme.Colors.textSecondary
+        )
+        .animation(fade(index)) {
+            $0.opacity(revealed ? 1 : 0).blur(radius: revealed ? 0 : BarMotion.glyphBlur)
+        }
+        .background {
+            if selection == command {
+                Circle().fill(Theme.Colors.compactShortcutSelection)
+                    .frame(width: geometry.diameter, height: geometry.diameter)
+                    .opacity(revealed ? 1 : 0)
             }
-            .background {
-                if colorScheme == .light {
-                    Circle().fill(selection == command ? Theme.Colors.compactShortcutSelection : .clear)
-                        .frame(width: geometry.diameter, height: geometry.diameter)
-                        .opacity(revealed ? 1 : 0)
-                }
-            }
-            // Shrinks with its circle but never travels: glyphs sent home would pile into one blot.
-            .animation(travel(index)) {
-                $0.scaleEffect(revealed ? 1 : BarMotion.parkedScale)
-            }
-            .position(geometry.center(of: index))
-            .allowsHitTesting(false)
-            .accessibilityHidden(true)
+        }
+        // Shrinks with its circle but never travels: glyphs sent home would pile into one blot.
+        .animation(travel(index)) {
+            $0.scaleEffect(revealed ? 1 : BarMotion.parkedScale)
+        }
+        .position(geometry.center(of: index))
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 
     private func travel(_ index: Int) -> Animation? {

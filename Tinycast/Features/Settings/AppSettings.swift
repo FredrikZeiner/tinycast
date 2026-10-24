@@ -730,7 +730,8 @@ final class AppSettings {
             defaults.string(forKey: Key.interfaceSize.rawValue).flatMap(InterfaceSize.init)
             ?? .standard
         compactMode = defaults.bool(forKey: Key.compactMode.rawValue)
-        compactBarCommands = defaults.stringArray(forKey: Key.compactBarCommands.rawValue)
+        compactBarCommands =
+            defaults.stringArray(forKey: Key.compactBarCommands.rawValue)
             .flatMap(CommandID.compactBarCommands(from:)) ?? CommandID.defaultCompactBarCommands
         // Unset seeds the defaults; a stored empty array is a deliberately cleared list.
         searchScopes =

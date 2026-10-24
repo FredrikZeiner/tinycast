@@ -445,7 +445,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   of the capsule's end, the last one never clipped at the window's edge; with Show animations off they
   appear in place. Mouse and keyboard activation open the command immediately, without a fuse,
   delayed reveal or shortcut shapes beneath the expanded panel. Show Notes opens its window
-- Compact mode: keyboard selection has a clear filled highlight and brighter glyph, without a ring;
+- Compact mode: keyboard selection has a medium gray fill in Light, a brighter fill in Dark, and a white
+  monochrome glyph in both, without a ring;
   Emoji & Symbols uses the same outlined glyph as the launcher in both Light and Dark
 - Verify compact selection in the live glass compositor in both appearances; an offscreen view bitmap
   omits the material and cannot prove selection contrast

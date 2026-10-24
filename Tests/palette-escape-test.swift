@@ -40,14 +40,18 @@ struct PaletteEscapeTests {
 
     static func main() {
         for behavior in EscapeKeyBehavior.allCases {
-            expect(resolve(query: "notes", behavior: behavior, compactRootExpanded: true),
+            expect(
+                resolve(query: "notes", behavior: behavior, compactRootExpanded: true),
                 .clearQuery, "compact root clears text before collapsing under either preference")
-            expect(resolve(behavior: behavior, compactRootExpanded: true),
+            expect(
+                resolve(behavior: behavior, compactRootExpanded: true),
                 .collapsePalette, "empty expanded compact root collapses under either preference")
             expect(resolve(behavior: behavior), .hidePalette, "collapsed root closes on the next Escape")
-            expect(resolve(menuOpen: true, behavior: behavior, compactRootExpanded: true),
+            expect(
+                resolve(menuOpen: true, behavior: behavior, compactRootExpanded: true),
                 .closeMenu, "menus still outrank root collapse")
-            expect(resolve(argumentFocused: true, behavior: behavior, compactRootExpanded: true),
+            expect(
+                resolve(argumentFocused: true, behavior: behavior, compactRootExpanded: true),
                 .leaveArgumentField, "argument focus still outranks root collapse")
         }
         expect(

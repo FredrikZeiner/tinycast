@@ -53,9 +53,10 @@ enum CommandID: String, CaseIterable, Sendable {
         .clipboardHistory, .searchFiles, .searchSnippets, .searchQuicklinks
     ]
 
-    static let compactBarOptions: [CommandID] = defaultCompactBarCommands + [
-        .searchEmoji, .showNotes, .mySchedule, .quickAI
-    ]
+    static let compactBarOptions: [CommandID] =
+        defaultCompactBarCommands + [
+            .searchEmoji, .showNotes, .mySchedule, .quickAI
+        ]
 
     static let compactBarLimit = 4
 

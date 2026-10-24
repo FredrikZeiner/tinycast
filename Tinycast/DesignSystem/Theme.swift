@@ -443,7 +443,10 @@ enum Theme {
         static let controlHover = ramp(dark: 0.16, light: 0.14)
         /// A held control is stronger than hover, so mouse-down always reads.
         static let controlPressed = ramp(dark: 0.24, light: 0.20)
-        static let compactShortcutSelection = ramp(dark: 1, light: 0.45)
+        static let compactShortcutGlassSelection = ramp(dark: 1, light: 0)
+        static let compactShortcutSelection = ramp(dark: 0.20, light: 0.55)
+        static let compactShortcutSelectedInk = adaptive(
+            dark: .srgbInk(1, alpha: 1), light: .srgbInk(1, alpha: 1))
         /// Control borders: outlined kbd chips.
         static let border = ramp(dark: 0.20, light: 0.18)
         /// Alpha 1, so a call site can dim it with `.opacity` and land on the value it replaced.
