@@ -94,7 +94,7 @@ struct CompactBar: View {
         .background(Theme.Colors.panelScrim.opacity(revealed ? 1 : 0), in: .circle)
         .glassEffect(.regular.interactive(), in: .circle)
         .overlay {
-            Circle().fill(selection == command ? Theme.Colors.controlPressed : .clear)
+            Circle().fill(selection == command ? Theme.Colors.compactShortcutSelection : .clear)
         }
         .scaleEffect(revealed ? 1 : BarMotion.parkedScale)
         .position(revealed ? geometry.center(of: index) : geometry.parked)
