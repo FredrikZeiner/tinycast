@@ -162,7 +162,8 @@ whole stack for that same root search from any depth.
 
 `EscapeKeyBehavior` (General settings) can trade the walk back for the old behavior: under
 `closeAndPopToRoot` an empty field closes the window and resets it immediately, whatever Pop to Root
-Search says. Clearing the query is still the first press either way.
+Search says. Clearing the query is still the first press either way. In compact mode, expanded
+launcher root search always clears, then collapses, then closes, under either preference.
 
 The header draws a back chevron on **every** screen but the launcher: leaving is what the icon
 slot means once you are off the root, and a slot that changed shape with provenance would read
@@ -244,11 +245,29 @@ match the visible row order**, including the card at index 0 when present — th
 ## The compact bar
 
 Compact is the launcher with an empty query, drawn as glass shapes over a bare window: the header
-row in a capsule, then one round button per entry of `CommandID.compactBarCommands` whose feature
-`AppIndex.isCommandEnabled` reports on. That list is the one place the slots are named, so letting
-the user choose them later replaces it rather than adding a second. A button runs its command
-through `LauncherCoordinator.runCommand`, exactly as the launcher row would, so a screen it opens
-is pushed over the root search and Escape steps back.
+row in a capsule, then one round button per configured `AppSettings.compactBarCommands` entry whose
+feature `AppIndex.isCommandEnabled` reports on. General settings shows **Compact Shortcuts** only
+when Compact is selected: an ordered list of zero to four unique commands, with add, replace,
+remove and move controls. The default remains Clipboard History, Search Files, Search Snippets and
+Search Quicklinks; Emoji & Symbols, Show Notes, My Schedule and Quick AI are also available.
+Disabled features retain their configured positions but disappear from the bar until re-enabled.
+The ordered command identifiers persist in preferences, backups and `appearance.compactBarCommands`
+in settings.json. Invalid lists are rejected whole, and an empty array deliberately removes all slots.
+
+Search starts selected on every presentation. Left/Right traverses Search and the visible buttons,
+stopping at either end; Down expands Search or opens the selected button, and Return opens only a
+selected button. Typing, pasting or clicking Search resets the selection. The AppKit field editor's
+boundary-arrow hook handles navigation without moving input focus away from Search; marked IME text
+and modified arrows retain their normal editing behavior.
+
+Mouse and keyboard activation share `CompactBar`'s merge animation and
+`LauncherCoordinator.runCommand`. Repeated activation is ignored during the merge, and hide,
+navigation or configuration changes cancel it. Palette screens push over root search as before;
+Show Notes closes the palette and opens its existing window.
+
+At expanded launcher root, Escape clears the query while setting `forceExpanded`, so clearing and
+collapsing remain separate presses. The next Escape clears that flag and collapses; another closes.
+Menus and argument fields still take precedence, and sub-screen navigation keeps its own behavior.
 
 The glass is a background of the header, not a wrapper around it: the field keeps its one structural
 position, and a container never paints its merged glass over the row. While compact the row is
@@ -597,9 +616,9 @@ whether macOS has claimed the chord, before assuming the handler is wrong.
 
 ## Emacs navigation chords
 
-⌃N/⌃P and ⌃F/⌃B navigate exactly as ↓/↑ and →/← do — on the emoji grid all four step the selection,
-and everywhere else the horizontal pair falls through to the caret, which is what a native search field
-does.
+⌃N/⌃P and ⌃F/⌃B navigate exactly as ↓/↑ and →/← do. The collapsed bar uses the horizontal pair
+to select Search or a shortcut; on the emoji grid all four step the selection. Other screens leave
+the horizontal pair to the caret.
 
 None of them reach `onKeyPress` on their own: AppKit's key-binding table hands the field editor
 `moveDown:` / `moveUp:` / `moveForward:` / `moveBackward:` first, and in a one-line field the vertical
@@ -607,9 +626,9 @@ pair walks the caret to the end or the start rather than moving anything.
 
 `PalettePanel.sendEvent` therefore rewrites each chord into its arrow and re-dispatches, ahead of every
 other rule it applies. Nothing else changes: the arrow handlers in `RootPaletteView` are the only
-navigation code, so the compact bar's expand-on-↓, the grid's row and column steps, menu highlight
-movement and the scroll-into-view intent all follow for free. The caret keeps ⌃F/⌃B off the grid
-because `moveHorizontally` leaves →/← `.ignored` there, and the field editor then moves by a character
+navigation code, so compact shortcut selection, expand-on-↓, the grid's row and column steps, menu
+highlight movement and the scroll-into-view intent all follow for free. Expanded non-grid screens
+keep ⌃F/⌃B because `moveHorizontally` leaves →/← `.ignored` there, and the field editor moves by a character
 exactly as the chord natively would. A chord carrying any modifier beyond ⌃ — ⌃⇧Q, say — is left alone.
 
 Character shortcut handlers accept every key so SwiftUI still calls them when the active input

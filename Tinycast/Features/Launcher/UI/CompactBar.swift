@@ -38,13 +38,13 @@ struct CompactBarGeometry {
 /// The compact bar's glass: a capsule the buttons bead off, with their glyphs drawn above it.
 struct CompactBar: View {
     let commands: [CommandID]
+    let selection: CommandID?
+    @Binding var merging: CommandID?
     let onRun: (CommandID) -> Void
     @Environment(PaletteState.self) private var palette
     @Environment(\.metrics) private var metrics
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isRevealed = false
-    /// The chosen button; every button fuses back into the capsule before its screen opens.
-    @State private var merging: CommandID?
 
     var body: some View {
         let geometry = CompactBarGeometry(metrics: metrics, count: commands.count)
@@ -85,12 +85,17 @@ struct CompactBar: View {
                 .contentShape(.circle)
         }
         .buttonStyle(.plain)
+        .focusable(false)
         .help(command.name)
         .accessibilityLabel(command.name)
+        .accessibilityAddTraits(selection == command ? [.isSelected] : [])
         .accessibilityHidden(!revealed)
         // Faded with its travel, or the parked button would darken the capsule's end.
         .background(Theme.Colors.panelScrim.opacity(revealed ? 1 : 0), in: .circle)
         .glassEffect(.regular.interactive(), in: .circle)
+        .overlay {
+            Circle().strokeBorder(selection == command ? Theme.Colors.textSecondary : .clear)
+        }
         .scaleEffect(revealed ? 1 : BarMotion.parkedScale)
         .position(revealed ? geometry.center(of: index) : geometry.parked)
         .allowsHitTesting(revealed)
@@ -150,19 +155,22 @@ struct CompactBar: View {
     }
 
     private func activate(_ command: CommandID) {
-        guard !reduceMotion else {
-            onRun(command)
-            return
-        }
+        guard merging == nil else { return }
         merging = command
     }
 
     /// With animations off the wait is zero, so the screen opens on the next turn.
     private func runMerged() async {
         guard let command = merging else { return }
-        try? await Task.sleep(for: .seconds(Motion.duration(BarMotion.merge)))
-        guard !Task.isCancelled else { return }
-        if palette.isVisible { onRun(command) }
+        let presentation = palette.focusToken
+        let reset = palette.resetToken
+        if !reduceMotion {
+            try? await Task.sleep(for: .seconds(Motion.duration(BarMotion.merge)))
+        }
+        guard !Task.isCancelled, palette.isVisible, palette.focusToken == presentation,
+            palette.resetToken == reset, merging == command, commands.contains(command)
+        else { return }
         merging = nil
+        onRun(command)
     }
 }

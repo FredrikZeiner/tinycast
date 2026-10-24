@@ -82,6 +82,11 @@ struct GeneralSettingsView: View {
                 }
                 InterfaceSizeRow()
                 WindowModeRow()
+                    .background {
+                        if !settings.compactMode {
+                            Color.clear.settingsAnchor(.generalCompactShortcuts)
+                        }
+                    }
                 Toggle(isOn: $settings.openOnCursorScreen) {
                     SettingsRowTitle(.generalAppearance, "Follow the cursor across displays")
                 }
@@ -92,6 +97,8 @@ struct GeneralSettingsView: View {
             } header: {
                 SettingsSectionHeader(.generalAppearance)
             }
+
+            if settings.compactMode { CompactShortcutsSection() }
 
             HyperKeySettingsSection()
 
