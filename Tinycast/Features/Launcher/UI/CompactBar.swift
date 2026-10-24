@@ -77,7 +77,9 @@ struct CompactBar: View {
     private func button(
         _ command: CommandID, at index: Int, geometry: CompactBarGeometry, revealed: Bool
     ) -> some View {
-        Button { activate(command) } label: {
+        Button {
+            activate(command)
+        } label: {
             Color.clear
                 .frame(width: geometry.diameter, height: geometry.diameter)
                 .contentShape(.circle)
@@ -142,22 +144,23 @@ struct CompactBar: View {
             isRevealed = true
             return
         }
-        try? await Task.sleep(for: BarMotion.parkAfterHide)
+        try? await Task.sleep(for: .seconds(Motion.duration(BarMotion.parkAfterHide)))
         guard !Task.isCancelled else { return }
         withTransaction(\.disablesAnimations, true) { isRevealed = false }
     }
 
     private func activate(_ command: CommandID) {
-        guard Motion.isEnabled, !reduceMotion else {
+        guard !reduceMotion else {
             onRun(command)
             return
         }
         merging = command
     }
 
+    /// With animations off the wait is zero, so the screen opens on the next turn.
     private func runMerged() async {
         guard let command = merging else { return }
-        try? await Task.sleep(for: BarMotion.merge)
+        try? await Task.sleep(for: .seconds(Motion.duration(BarMotion.merge)))
         guard !Task.isCancelled else { return }
         if palette.isVisible { onRun(command) }
         merging = nil

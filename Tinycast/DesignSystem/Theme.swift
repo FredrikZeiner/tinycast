@@ -346,9 +346,9 @@ enum Theme {
         static let glyphFade: TimeInterval = 0.16
         static let glyphBlur: CGFloat = 4
         /// A chosen button fuses back into the capsule before its screen opens.
-        static let merge: Swift.Duration = .milliseconds(200)
+        static let merge: TimeInterval = 0.2
         /// Past the window's own close animation, so parking the buttons is never seen.
-        static let parkAfterHide: Swift.Duration = .milliseconds(300)
+        static let parkAfterHide: TimeInterval = 0.3
         /// The capsule undershoots as it shortens, then settles.
         static let capsule = Animation.spring(response: 0.44, dampingFraction: 0.62)
         /// The buttons barely overshoot: the last rests on the window's edge, which would clip it.

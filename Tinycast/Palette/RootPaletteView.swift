@@ -680,12 +680,12 @@ struct RootPaletteView: View {
                     CompactBar(commands: compactCommands) { core.launcherCoordinator.runCommand($0) }
                 }
             }
-        // Next turn, once the show's `land()` and search refocus are done, so neither undoes it.
-        .onChange(of: vm.pendingArgumentEntryID) {
-            Task { @MainActor in focusPendingArgument() }
-        }
-        .onChange(of: argumentFocused) { _, field in vm.noteEditingField(field != nil) }
-        .onChange(of: quickAI.pendingAttachments.map(\.id)) { refreshAttachmentsMenu() }
+            // Next turn, once the show's `land()` and search refocus are done, so neither undoes it.
+            .onChange(of: vm.pendingArgumentEntryID) {
+                Task { @MainActor in focusPendingArgument() }
+            }
+            .onChange(of: argumentFocused) { _, field in vm.noteEditingField(field != nil) }
+            .onChange(of: quickAI.pendingAttachments.map(\.id)) { refreshAttachmentsMenu() }
     }
 
     private var compactCommands: [CommandID] {
