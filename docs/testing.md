@@ -447,6 +447,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   delayed reveal or shortcut shapes beneath the expanded panel. Show Notes opens its window
 - Compact mode: keyboard selection has a clear filled highlight and brighter glyph, without a ring;
   Emoji & Symbols uses the same outlined glyph as the launcher in both Light and Dark
+- Verify compact selection in the live glass compositor in both appearances; an offscreen view bitmap
+  omits the material and cannot prove selection contrast
 - Compact Shortcuts settings: command names sit beside their icons; replacement menus and borderless
   move/remove controls work without stretching the labels across the row
 - The expanded header leaves even room above the query and below it, before the first section

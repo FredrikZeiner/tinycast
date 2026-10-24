@@ -42,6 +42,7 @@ struct CompactBar: View {
     let onRun: (CommandID) -> Void
     @Environment(PaletteState.self) private var palette
     @Environment(\.metrics) private var metrics
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isRevealed = false
 
@@ -94,7 +95,9 @@ struct CompactBar: View {
         .background(Theme.Colors.panelScrim.opacity(revealed ? 1 : 0), in: .circle)
         .glassEffect(.regular.interactive(), in: .circle)
         .overlay {
-            Circle().fill(selection == command ? Theme.Colors.compactShortcutSelection : .clear)
+            if colorScheme == .dark {
+                Circle().fill(selection == command ? Theme.Colors.compactShortcutSelection : .clear)
+            }
         }
         .scaleEffect(revealed ? 1 : BarMotion.parkedScale)
         .position(revealed ? geometry.center(of: index) : geometry.parked)
@@ -110,6 +113,13 @@ struct CompactBar: View {
             .foregroundStyle(selection == command ? Theme.Colors.textPrimary : Theme.Colors.textSecondary)
             .animation(fade(index)) {
                 $0.opacity(revealed ? 1 : 0).blur(radius: revealed ? 0 : BarMotion.glyphBlur)
+            }
+            .background {
+                if colorScheme == .light {
+                    Circle().fill(selection == command ? Theme.Colors.compactShortcutSelection : .clear)
+                        .frame(width: geometry.diameter, height: geometry.diameter)
+                        .opacity(revealed ? 1 : 0)
+                }
             }
             // Shrinks with its circle but never travels: glyphs sent home would pile into one blot.
             .animation(travel(index)) {
