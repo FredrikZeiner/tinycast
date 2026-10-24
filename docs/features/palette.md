@@ -90,25 +90,25 @@ every screen but two: the clipboard lands past its pins
 ([clipboard.md](clipboard.md#pinned-entries)), and Search Quicklinks lands on the row a prompt names
 ([quicklinks.md](quicklinks.md)).
 
-| Mode                 | Screen                    | Inner list                                                                       |
-| -------------------- | ------------------------- | -------------------------------------------------------------------------------- |
-| `.launcher`          | `LauncherScreen`          | `LauncherList`                                                                   |
-| `.clipboard`         | `ClipboardScreen`         | `ClipboardList` + preview                                                        |
-| `.calculatorHistory` | `CalculatorHistoryScreen` | `CalculatorHistoryList`                                                          |
-| `.emoji`             | `EmojiScreen`             | `EmojiGridView`                                                                  |
-| `.fileSearch`        | `FileSearchScreen`        | `FileSearchList` (see [file-search.md](file-search.md))                          |
-| `.schedule`          | `ScheduleScreen`          | `ScheduleList` (see [calendar.md](calendar.md))                                  |
-| `.eventEditor`       | `EventEditorScreen`       | `EventEditorView` (see [calendar.md](calendar.md#create-event)) |
-| `.customCommandEditor` | `CustomCommandEditorScreen` | `CustomCommandEditorView` (see [custom-commands.md](custom-commands.md#launcher-editor)) |
-| `.customCommands` | `CustomCommandListScreen` | `CustomCommandList` + script preview (see [custom-commands.md](custom-commands.md#launcher-integration)) |
-| `.meetingDetails`    | `MeetingDetailsScreen`    | `MeetingDetailsView` (see [calendar.md](calendar.md#the-details-page))           |
-| `.uninstall`         | `UninstallScreen`         | `UninstallList` (see [uninstall.md](uninstall.md))                               |
-| `.quicklinks`        | `QuicklinkListScreen`     | `QuicklinkList` + preview (see [quicklinks.md](quicklinks.md#search-quicklinks)) |
-| `.quicklinkEditor`   | `QuicklinkEditorScreen`   | `QuicklinkEditorView` (see [quicklinks.md](quicklinks.md#launcher-editor)) |
-| `.snippets`          | `SnippetsScreen`          | `SnippetsList` + preview (see [snippets.md](snippets.md#search-snippets))        |
-| `.snippetEditor`     | `SnippetEditorScreen`     | `SnippetEditorView` (see [snippets.md](snippets.md#launcher-editor)) |
-| `.dictionary`        | `DictionaryScreen`        | `DictionaryEntryView` (see [dictionary.md](dictionary.md))                       |
-| `.extensionCommand`  | `ExtensionCommandScreen`  | `ExtensionCommandView` (see [extensions.md](extensions.md))                      |
+| Mode                   | Screen                      | Inner list                                                                                               |
+| ---------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `.launcher`            | `LauncherScreen`            | `LauncherList`                                                                                           |
+| `.clipboard`           | `ClipboardScreen`           | `ClipboardList` + preview                                                                                |
+| `.calculatorHistory`   | `CalculatorHistoryScreen`   | `CalculatorHistoryList`                                                                                  |
+| `.emoji`               | `EmojiScreen`               | `EmojiGridView`                                                                                          |
+| `.fileSearch`          | `FileSearchScreen`          | `FileSearchList` (see [file-search.md](file-search.md))                                                  |
+| `.schedule`            | `ScheduleScreen`            | `ScheduleList` (see [calendar.md](calendar.md))                                                          |
+| `.eventEditor`         | `EventEditorScreen`         | `EventEditorView` (see [calendar.md](calendar.md#create-event))                                          |
+| `.customCommandEditor` | `CustomCommandEditorScreen` | `CustomCommandEditorView` (see [custom-commands.md](custom-commands.md#launcher-editor))                 |
+| `.customCommands`      | `CustomCommandListScreen`   | `CustomCommandList` + script preview (see [custom-commands.md](custom-commands.md#launcher-integration)) |
+| `.meetingDetails`      | `MeetingDetailsScreen`      | `MeetingDetailsView` (see [calendar.md](calendar.md#the-details-page))                                   |
+| `.uninstall`           | `UninstallScreen`           | `UninstallList` (see [uninstall.md](uninstall.md))                                                       |
+| `.quicklinks`          | `QuicklinkListScreen`       | `QuicklinkList` + preview (see [quicklinks.md](quicklinks.md#search-quicklinks))                         |
+| `.quicklinkEditor`     | `QuicklinkEditorScreen`     | `QuicklinkEditorView` (see [quicklinks.md](quicklinks.md#launcher-editor))                               |
+| `.snippets`            | `SnippetsScreen`            | `SnippetsList` + preview (see [snippets.md](snippets.md#search-snippets))                                |
+| `.snippetEditor`       | `SnippetEditorScreen`       | `SnippetEditorView` (see [snippets.md](snippets.md#launcher-editor))                                     |
+| `.dictionary`          | `DictionaryScreen`          | `DictionaryEntryView` (see [dictionary.md](dictionary.md))                                               |
+| `.extensionCommand`    | `ExtensionCommandScreen`    | `ExtensionCommandView` (see [extensions.md](extensions.md))                                              |
 
 **Tab rings the three surfaces a reader opens directly — launcher → AI chat → clipboard → launcher**
 — unless the screen claims it through `tab(at:backwards:)` (native editors and extension forms walk
@@ -135,7 +135,7 @@ that returning looks like never having left — and offers four motions over it:
 | -------------------------- | -------------------------------------------------------------------------- |
 | `prepare(mode:)`           | become the root: open fresh, drop the stack                                |
 | `replace(mode:)`           | swap the screen, keep what it was opened over (a new chat, not a new root) |
-| `push(mode:)`              | open over the current screen; replace a transient native editor instead   |
+| `push(mode:)`              | open over the current screen; replace a transient native editor instead    |
 | `pushCarryingQuery(mode:)` | the same step, with the query and row kept: Tab's hop into the ring        |
 | `pop()`                    | restore the screen underneath; `false` when this one is the root           |
 
@@ -270,8 +270,9 @@ Mouse and keyboard activation synchronously call `LauncherCoordinator.runCommand
 with animations disabled. No merge animation or delayed activation survives beneath the destination
 screen. Palette screens push over root search as before; Show Notes closes the palette and opens
 its existing window. The summon reveal still animates independently.
-The capsule and shortcuts share one masked scrim, so overlapping shapes cannot paint the fill twice
-beneath the query. Their original fill and travel timing is preserved.
+A shared scrim mask prevents overlapping surface fills from painting twice beneath the query.
+Selected Dark buttons keep their native glass scrim outside that mask to preserve their highlight.
+The original fill and travel timing is unchanged.
 
 At expanded launcher root, Escape clears the query while setting `forceExpanded`, so clearing and
 collapsing remain separate presses. The next Escape clears that flag and collapses; another closes.
