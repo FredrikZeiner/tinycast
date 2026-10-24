@@ -270,6 +270,8 @@ Mouse and keyboard activation synchronously call `LauncherCoordinator.runCommand
 with animations disabled. No merge animation or delayed activation survives beneath the destination
 screen. Palette screens push over root search as before; Show Notes closes the palette and opens
 its existing window. The summon reveal still animates independently.
+The capsule and shortcuts share one masked scrim, so overlapping shapes cannot paint the fill twice
+beneath the query. Their original fill and travel timing is preserved.
 
 At expanded launcher root, Escape clears the query while setting `forceExpanded`, so clearing and
 collapsing remain separate presses. The next Escape clears that flag and collapses; another closes.
