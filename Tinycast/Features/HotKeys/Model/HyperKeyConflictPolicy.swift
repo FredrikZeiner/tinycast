@@ -25,7 +25,7 @@ enum HyperKeyConflictPolicy {
         KnownApp(bundleID: "com.hegenberg.BetterTouchTool", severity: .warning),
         KnownApp(bundleID: "com.knollsoft.Hyperkey", severity: .blocking),
         KnownApp(bundleID: "com.knollsoft.Superkey", severity: .blocking),
-        KnownApp(bundleID: "com.raycast.macos", severity: .blocking)
+        KnownApp(bundleID: "com.raycast.macos", severity: .warning)
     ]
 
     /// Average time another app's keyboard tap holds each event before typing visibly lags.

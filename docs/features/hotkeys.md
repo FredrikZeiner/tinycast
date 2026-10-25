@@ -295,13 +295,13 @@ that rule. A combo or a cancelled hold never runs its Quick Press action.
 `HyperKeyConflictPolicy` is the pure rule, tested by `hyper-key-test`; `HyperKeyConflictScanner` reads the
 machine for it.
 
-- **Known apps.** Hyperkey, Superkey and Raycast bring a Hyper Key of their own and are **blocking**:
-  two Hyper Keys never run side by side, so while one runs ours stays `.blocked`, says so once in a HUD,
-  and comes back by itself when it quits — KVO on `NSWorkspace.runningApplications` re-runs `apply()`,
-  but only for those bundle IDs. Launch and terminate notifications cannot do it: macOS skips them for
-  menu-bar apps, and the blockers are ones. Raycast blocks even with its own Hyper Key off, because
-  nothing outside Raycast reads that setting. BetterTouchTool is a **warning**, listed and never acted
-  on.
+- **Known apps.** Hyperkey and Superkey bring a Hyper Key of their own and are **blocking**: while one
+  runs ours stays `.blocked`, says so once in a HUD, and comes back by itself when it quits — KVO on
+  `NSWorkspace.runningApplications` re-runs `apply()`, but only for those bundle IDs. Launch and
+  terminate notifications cannot do it: macOS skips them for menu-bar apps, and both blockers are ones.
+  BetterTouchTool and Raycast are **warnings**, listed and never acted on: each offers a Hyper Key but
+  usually runs without it, and nothing outside them reads that setting. One whose Hyper Key does take
+  over Caps Lock is caught as below.
 - **Any other app.** An app nobody listed is caught by what it does. `takeover()` compares each
   keyboard's Caps Lock mapping with ours: one now sent elsewhere means another Hyper Key won, which
   Settings shows as **Taken Over** in red, naming the keyboards and the likely apps. It is read when

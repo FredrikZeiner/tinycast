@@ -82,13 +82,13 @@ struct HyperKeyTest {
 
     static func knownApps() {
         check(
-            "Hyperkey, Superkey and Raycast block the Hyper Key",
+            "Hyperkey and Superkey block the Hyper Key",
             HyperKeyConflictPolicy.severity(ofBundleID: "com.knollsoft.Hyperkey") == .blocking
-                && HyperKeyConflictPolicy.severity(ofBundleID: "com.knollsoft.Superkey") == .blocking
-                && HyperKeyConflictPolicy.severity(ofBundleID: "com.raycast.macos") == .blocking)
+                && HyperKeyConflictPolicy.severity(ofBundleID: "com.knollsoft.Superkey") == .blocking)
         check(
-            "BetterTouchTool is only a warning",
-            HyperKeyConflictPolicy.severity(ofBundleID: "com.hegenberg.BetterTouchTool") == .warning)
+            "BetterTouchTool and Raycast are only warnings",
+            HyperKeyConflictPolicy.severity(ofBundleID: "com.hegenberg.BetterTouchTool") == .warning
+                && HyperKeyConflictPolicy.severity(ofBundleID: "com.raycast.macos") == .warning)
         check(
             "an unknown app is no conflict",
             HyperKeyConflictPolicy.severity(ofBundleID: "com.apple.Safari") == nil)

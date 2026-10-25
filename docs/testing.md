@@ -563,9 +563,9 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   returns within a couple of seconds without a relaunch
 - Lock the screen: Caps Lock types capitals in the password field; unlocking restores Hyper. Sleep
   and wake do the same
-- With Raycast's Hyper Key on Caps Lock, start Tinycast's: the status reads Blocked and a HUD names
-  Raycast; quitting Raycast restores Hyper. With an unlisted app remapping Caps Lock instead, Settings
-  reads Taken Over in red and names the keyboards; Diagnostics… lists it under Apps Changing Keys
+- With Raycast running, Diagnostics… lists it as a warning and Hyper keeps working. Turn on Raycast's
+  Hyper Key on Caps Lock: Settings reads Taken Over in red, names the keyboards and Raycast, and
+  Diagnostics… lists it under Apps Changing Keys
 - With Hyperkey running, the status reads Blocked and a HUD names it; quitting Hyperkey restores
   Hyper without a relaunch. Diagnostics… lists BetterTouchTool as a warning when it runs
 - Remap Caps Lock in Keyboard ▸ Modifier Keys: Diagnostics… reports it with the keyboard's name
