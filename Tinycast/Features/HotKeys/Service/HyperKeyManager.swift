@@ -109,7 +109,6 @@ final class HyperKeyManager: HealthCheckable {
         retryLater(.blocked(appName: appName))
     }
 
-    /// Stops for something the watchdog retries until it clears.
     private func retryLater(_ status: Status) {
         stop(status, retrying: true)
     }

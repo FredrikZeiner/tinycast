@@ -31,7 +31,6 @@ final class HyperKeyInstanceLock {
         return true
     }
 
-    /// The process holding the lock, as it recorded itself.
     func holder() -> pid_t? {
         (try? String(contentsOf: url, encoding: .utf8)).flatMap { pid_t($0) }
     }

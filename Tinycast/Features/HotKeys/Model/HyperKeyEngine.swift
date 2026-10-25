@@ -46,7 +46,6 @@ struct HyperKeyEngine: Sendable {
     private func removingSourceFlags(from flags: UInt64) -> UInt64 {
         guard let route else { return flags }
         guard route.key != .capsLock else {
-            // The remapped key's latch bit, and the Right Control it arrives as when compatible.
             return flags & ~(CGEventFlags.maskAlphaShift.rawValue | (route.modifier?.deviceMask ?? 0))
         }
         guard let modifier = route.modifier, let own = route.key.ownFlag?.rawValue else { return flags }
@@ -74,7 +73,6 @@ struct HyperKeyEngine: Sendable {
         }
         guard keyCode == route.tapKeyCode else {
             guard isHeld(in: flags) else {
-                // A modifier released while the tap was disabled leaves a stale hold behind.
                 reset()
                 return Result(decision: .pass)
             }
@@ -100,7 +98,8 @@ struct HyperKeyEngine: Sendable {
                 downAt = time
                 used = false
             }
-            return Result(decision: .rewrite(flags: flags | hyperFlags, keyCode: command, asFlagsChanged: true))
+            return Result(
+                decision: .rewrite(flags: flags | hyperFlags, keyCode: command, asFlagsChanged: true))
         }
         // A stray F18 release ends nothing, but a modifier's release always clears the chord.
         guard isActive || route?.modifier != nil else { return Result(decision: .suppress) }

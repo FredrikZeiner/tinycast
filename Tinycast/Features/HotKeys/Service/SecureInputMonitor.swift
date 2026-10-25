@@ -38,7 +38,6 @@ final class SecureInputMonitor {
         for type in Self.notificationTypes { _ = register(secureInputDidChange, type, context) }
     }
 
-    /// Reports each transition once.
     func refresh() {
         let active = IsSecureEventInputEnabled()
         guard active != isActive else { return }

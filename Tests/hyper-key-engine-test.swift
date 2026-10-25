@@ -79,7 +79,8 @@ struct HyperKeyEngineTest {
             "a key carrying the device bit is a chord even without a seen press",
             engine.handle(type: .keyDown, keyCode: kVK_ANSI_G, flags: command | rightCommand, at: 0)
                 .decision != .pass)
-        _ = engine.handle(type: .flagsChanged, keyCode: kVK_RightCommand, flags: command | rightCommand, at: 1)
+        _ = engine.handle(
+            type: .flagsChanged, keyCode: kVK_RightCommand, flags: command | rightCommand, at: 1)
         let leftCommand = engine.handle(
             type: .flagsChanged, keyCode: kVK_Command, flags: command | 0x8 | rightCommand, at: 1.1)
         if case .rewrite(let flags, _, _) = leftCommand.decision {
@@ -91,7 +92,8 @@ struct HyperKeyEngineTest {
             "a key without the device bit ends a missed release",
             engine.handle(type: .keyDown, keyCode: kVK_ANSI_G, flags: 0, at: 2).decision == .pass
                 && !engine.isActive)
-        _ = engine.handle(type: .flagsChanged, keyCode: kVK_RightCommand, flags: command | rightCommand, at: 3)
+        _ = engine.handle(
+            type: .flagsChanged, keyCode: kVK_RightCommand, flags: command | rightCommand, at: 3)
         let release = engine.handle(
             type: .flagsChanged, keyCode: kVK_RightCommand, flags: option | 0x20, at: 3.1)
         check(
@@ -128,7 +130,9 @@ struct HyperKeyEngineTest {
             var engine = HyperKeyEngine(route: route)
             _ = engine.handle(type: .keyDown, keyCode: route.tapKeyCode, flags: 0, at: 0)
             let up = engine.handle(type: .keyUp, keyCode: route.tapKeyCode, flags: 0, at: duration)
-            check("an unused press reports its hold of \(duration)", up.effect == .unusedPress(heldFor: duration))
+            check(
+                "an unused press reports its hold of \(duration)",
+                up.effect == .unusedPress(heldFor: duration))
         }
         var engine = HyperKeyEngine(route: route)
         _ = engine.handle(type: .keyDown, keyCode: route.tapKeyCode, flags: 0, at: 0)
@@ -167,28 +171,35 @@ struct HyperKeyEngineTest {
         let original = HyperKeyQuickPress.originalKey
         check(
             "any press turns Caps Lock off",
-            original.effect(heldFor: 0.01, capsLockOn: true, switchesInputSource: false) == .setCapsLock(false))
+            original.effect(heldFor: 0.01, capsLockOn: true, switchesInputSource: false)
+                == .setCapsLock(false))
         check(
             "any press turns Caps Lock off before switching sources",
-            original.effect(heldFor: 0.01, capsLockOn: true, switchesInputSource: true) == .setCapsLock(false))
+            original.effect(heldFor: 0.01, capsLockOn: true, switchesInputSource: true) == .setCapsLock(false)
+        )
         check(
             "a press under 75 ms leaves Caps Lock off",
             original.effect(heldFor: 0.074, capsLockOn: false, switchesInputSource: false) == nil)
         check(
             "75 ms turns Caps Lock on",
-            original.effect(heldFor: 0.076, capsLockOn: false, switchesInputSource: false) == .setCapsLock(true))
+            original.effect(heldFor: 0.076, capsLockOn: false, switchesInputSource: false)
+                == .setCapsLock(true))
         check(
             "a press under 150 ms switches the input source",
-            original.effect(heldFor: 0.149, capsLockOn: false, switchesInputSource: true) == .switchInputSource)
+            original.effect(heldFor: 0.149, capsLockOn: false, switchesInputSource: true)
+                == .switchInputSource)
         check(
             "150 ms turns Caps Lock on when it switches sources",
-            original.effect(heldFor: 0.151, capsLockOn: false, switchesInputSource: true) == .setCapsLock(true))
+            original.effect(heldFor: 0.151, capsLockOn: false, switchesInputSource: true)
+                == .setCapsLock(true))
         check(
             "Escape ignores the hold",
-            HyperKeyQuickPress.escape.effect(heldFor: 5, capsLockOn: true, switchesInputSource: true) == .escape)
+            HyperKeyQuickPress.escape.effect(heldFor: 5, capsLockOn: true, switchesInputSource: true)
+                == .escape)
         check(
             "None does nothing",
-            HyperKeyQuickPress.none.effect(heldFor: 0.5, capsLockOn: false, switchesInputSource: false) == nil)
+            HyperKeyQuickPress.none.effect(heldFor: 0.5, capsLockOn: false, switchesInputSource: false) == nil
+        )
     }
 
     static func interruption() {
