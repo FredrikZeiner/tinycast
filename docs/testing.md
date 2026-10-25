@@ -141,7 +141,7 @@ If a change touches anything in the right column, the harness on the left is man
 | `palette-menu-click-test` | `Palette/PalettePanel.swift` — complete click-away presses and subsequent control activation |
 | `hyper-key-engine-test` | Hyper chord transitions for every physical key, device-bit holds, own-bit and other-Shift residue, released modifiers, the Quick Press rule, repeats and interruption recovery |
 | `hotkey-test` | `HotKeys/Model/DoubleTapModifier.swift`, `DoubleTapDetector.swift`, `ModifierKey.swift`, `ModifierKeyDetector.swift`, `HotKeyBinding.swift`, `HotKeySpelling.swift`, `HyperKey.swift`, `HIDKeyMapping.swift`, `HotKeyAction.swift`, `Service/KeyShortcut.swift`, and the command→action mapping in `Launcher/Model/CommandID.swift` |
-| `hyper-key-test` | `HotKeys/Model/HIDKeyMapping.swift`, `HyperKeyConflictPolicy.swift`, `Service/KeyboardRemapper.swift`, `HyperKeyInstanceLock.swift` — mapping ownership, refused writes, crash recovery, device reconnection, Caps Lock and 🎤 remaps sharing a keyboard, conflict severities, Modifier Keys and Karabiner parsing, one process per Hyper Key |
+| `hyper-key-test` | `HotKeys/Model/HIDKeyMapping.swift`, `HyperKeyConflictPolicy.swift`, `Service/KeyboardRemapper.swift`, `HyperKeyInstanceLock.swift` — mapping ownership, refused writes, crash recovery, device reconnection, Caps Lock and 🎤 remaps sharing a keyboard, conflict severities, Modifier Keys and Karabiner parsing, another app taking over Caps Lock, one process per Hyper Key |
 | `hotkey-dispatch-test` | `HotKeys/Service/HotKeyManager.swift` — Secure Input side isolation, shared Control registrations, press/release routing, recording and cancellation; isolated preferences and simulated Carbon registration |
 | `dictation-test` | `Dictation/Model/DictationModel.swift`, `DictationTextFormatter.swift` — model paths and text formatting |
 | `dictation-field-test` | Composer rebinding and teardown, field-scoped dictation cancellation, and queued insertion validity; synthetic capture and real AppKit editors |
@@ -563,6 +563,9 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   returns within a couple of seconds without a relaunch
 - Lock the screen: Caps Lock types capitals in the password field; unlocking restores Hyper. Sleep
   and wake do the same
+- With Raycast's Hyper Key on Caps Lock, start Tinycast's: the status reads Blocked and a HUD names
+  Raycast; quitting Raycast restores Hyper. With an unlisted app remapping Caps Lock instead, Settings
+  reads Taken Over in red and names the keyboards; Diagnostics… lists it under Apps Changing Keys
 - With Hyperkey running, the status reads Blocked and a HUD names it; quitting Hyperkey restores
   Hyper without a relaunch. Diagnostics… lists BetterTouchTool as a warning when it runs
 - Remap Caps Lock in Keyboard ▸ Modifier Keys: Diagnostics… reports it with the keyboard's name

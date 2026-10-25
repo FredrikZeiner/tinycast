@@ -82,9 +82,10 @@ struct HyperKeyTest {
 
     static func knownApps() {
         check(
-            "Hyperkey and Superkey block the Hyper Key",
+            "Hyperkey, Superkey and Raycast block the Hyper Key",
             HyperKeyConflictPolicy.severity(ofBundleID: "com.knollsoft.Hyperkey") == .blocking
-                && HyperKeyConflictPolicy.severity(ofBundleID: "com.knollsoft.Superkey") == .blocking)
+                && HyperKeyConflictPolicy.severity(ofBundleID: "com.knollsoft.Superkey") == .blocking
+                && HyperKeyConflictPolicy.severity(ofBundleID: "com.raycast.macos") == .blocking)
         check(
             "BetterTouchTool is only a warning",
             HyperKeyConflictPolicy.severity(ofBundleID: "com.hegenberg.BetterTouchTool") == .warning)
@@ -142,6 +143,11 @@ struct HyperKeyTest {
             )
             HIDEventSystem.connect(2)
             check("hot plug remaps new keyboards", HIDEventSystem.mappings[2] == [toF18])
+            check("no keyboard is taken over while ours", remapper.overriddenKeyboardNames.isEmpty)
+            HIDEventSystem.mappings[2] = [
+                HIDKeyMapping(source: HIDKeyMapping.capsLock, destination: 0x7_0000_006F)
+            ]
+            check("another app's mapping is a takeover", remapper.overriddenKeyboardNames == ["External"])
             HIDEventSystem.mappings[2] = []
             check(
                 "repair restores a lost mapping",

@@ -77,8 +77,25 @@ final class HyperKeyManager: HealthCheckable {
             capsLockMappingConflicts: key == .capsLock
                 ? HyperKeyConflictScanner.capsLockRemaps().map { name(of: $0, among: keyboards) }
                 : [],
+            takeover: takeover(),
+            keyboardTaps: HyperKeyConflictScanner.keyboardTaps(),
             secureInputCompatibilityActive: status == .active && isSecureInputCompatible,
             secureInput: secureInput.report())
+    }
+
+    /// Read on demand: another app taking the key over leaves nothing for Tinycast to observe.
+    func takeover() -> HyperKeyDiagnostics.Takeover? {
+        guard status == .active else { return nil }
+        let keyboards = remapper.overriddenKeyboardNames
+        guard !keyboards.isEmpty else { return nil }
+        let suspects =
+            HyperKeyConflictScanner.runningConflicts().map(\.name)
+            + HyperKeyConflictScanner.keyboardTaps().map(\.appName)
+        return HyperKeyDiagnostics.Takeover(
+            keyboards: keyboards,
+            likelyApps: suspects.reduce(into: []) { apps, app in
+                if !apps.contains(app) { apps.append(app) }
+            })
     }
 
     // MARK: - Applying

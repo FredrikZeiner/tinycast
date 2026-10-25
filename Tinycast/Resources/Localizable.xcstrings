@@ -3833,6 +3833,58 @@
         }
       }
     },
+    "%@, slow" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, langsam"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, lenta"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, lente"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@（低速）"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, 느림"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, lento"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, медленно"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@（较慢）"
+          }
+        }
+      }
+    },
     "%@/%@ has no %@ folder at %@." : {
       "localizations" : {
         "de" : {
@@ -21784,6 +21836,58 @@
         }
       }
     },
+    "Another app now remaps Caps Lock on %@." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine andere App belegt die Feststelltaste auf %@ jetzt neu."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otra app reasigna ahora Bloq Mayús en %@."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une autre app réassigne désormais Verrouillage majuscules sur %@."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "別のAppが現在%@のCaps Lockを再割り当てしています。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다른 앱이 현재 %@의 Caps Lock을 재할당하고 있습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outro app agora remapeia o Caps Lock em %@."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Другое приложение теперь переназначает Caps Lock на %@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "另一个 App 现在在 %@ 上重新映射了大写锁定键。"
+          }
+        }
+      }
+    },
     "Another extension command is running. Try again when it finishes." : {
       "localizations" : {
         "de" : {
@@ -23311,6 +23415,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "应用"
+          }
+        }
+      }
+    },
+    "Apps Changing Keys" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps, die Tasten ändern"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps que cambian teclas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps qui modifient les touches"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キーを変更するApp"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "키를 변경하는 앱"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apps que alteram teclas"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приложения, изменяющие клавиши"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更改按键的 App"
           }
         }
       }
@@ -29909,6 +30065,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "大写锁定映射冲突"
+          }
+        }
+      }
+    },
+    "Caps Lock goes elsewhere on these keyboards, so another app's Hyper Key runs." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auf diesen Tastaturen geht die Feststelltaste woanders hin, daher läuft die Hyper Key einer anderen App."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En estos teclados Bloq Mayús va a otro sitio, así que funciona la Hyper Key de otra app."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sur ces claviers, Verrouillage majuscules est envoyé ailleurs : c’est la Hyper Key d’une autre app qui fonctionne."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "これらのキーボードではCaps Lockが別の場所に送られるため、別のAppのHyper Keyが動作します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 키보드에서는 Caps Lock이 다른 곳으로 전달되므로 다른 앱의 Hyper Key가 작동합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nesses teclados, o Caps Lock vai para outro lugar, então é a Hyper Key de outro app que funciona."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "На этих клавиатурах Caps Lock отправляется в другое место, поэтому работает Hyper Key другого приложения."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在这些键盘上，大写锁定键被发送到别处，因此运行的是另一个 App 的 Hyper Key。"
           }
         }
       }
@@ -87303,6 +87511,58 @@
         }
       }
     },
+    "Other apps that rewrite keystrokes. A slow one delays all typing." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Andere Apps, die Tastenanschläge umschreiben. Eine langsame verzögert jede Eingabe."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otras apps que reescriben las pulsaciones. Una lenta retrasa toda la escritura."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autres apps qui réécrivent les frappes. Une app lente ralentit toute la saisie."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キー入力を書き換える他のApp。遅いAppがあると、すべての入力が遅れます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "키 입력을 다시 쓰는 다른 앱입니다. 느린 앱이 있으면 모든 입력이 지연됩니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outros apps que reescrevem as teclas digitadas. Um app lento atrasa toda a digitação."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Другие приложения, которые изменяют нажатия клавиш. Медленное приложение задерживает весь ввод."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他会改写按键的 App。较慢的 App 会拖慢所有输入。"
+          }
+        }
+      }
+    },
     "Output" : {
       "comment" : "Info label: the command's output mode",
       "localizations" : {
@@ -95363,6 +95623,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已重新映射的键盘"
+          }
+        }
+      }
+    },
+    "Remapped by Another App" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von anderer App neu belegt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reasignado por otra app"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réassigné par une autre app"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "別のAppによる再割り当て"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다른 앱이 재할당함"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remapeado por outro app"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Переназначено другим приложением"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已被其他 App 重新映射"
           }
         }
       }
@@ -112968,6 +113280,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "拍照"
+          }
+        }
+      }
+    },
+    "Taken Over" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Übernommen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reemplazado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remplacée"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "他のAppが使用中"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다른 앱이 사용 중"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Substituído"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перехвачено"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已被接管"
           }
         }
       }

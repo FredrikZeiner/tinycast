@@ -295,11 +295,20 @@ that rule. A combo or a cancelled hold never runs its Quick Press action.
 `HyperKeyConflictPolicy` is the pure rule, tested by `hyper-key-test`; `HyperKeyConflictScanner` reads the
 machine for it.
 
-- **Known apps.** Hyperkey and Superkey bring a Hyper Key of their own and are **blocking**: while one
-  runs ours stays `.blocked`, says so once in a HUD, and comes back by itself when it quits — KVO on
-  `NSWorkspace.runningApplications` re-runs `apply()`, but only for those bundle IDs. Launch and
-  terminate notifications cannot do it: macOS skips them for menu-bar apps, and both blockers are ones. BetterTouchTool is a
-  **warning**, listed and never acted on. Other running event taps are not conflicts: most are benign.
+- **Known apps.** Hyperkey, Superkey and Raycast bring a Hyper Key of their own and are **blocking**:
+  two Hyper Keys never run side by side, so while one runs ours stays `.blocked`, says so once in a HUD,
+  and comes back by itself when it quits — KVO on `NSWorkspace.runningApplications` re-runs `apply()`,
+  but only for those bundle IDs. Launch and terminate notifications cannot do it: macOS skips them for
+  menu-bar apps, and the blockers are ones. Raycast blocks even with its own Hyper Key off, because
+  nothing outside Raycast reads that setting. BetterTouchTool is a **warning**, listed and never acted
+  on.
+- **Any other app.** An app nobody listed is caught by what it does. `takeover()` compares each
+  keyboard's Caps Lock mapping with ours: one now sent elsewhere means another Hyper Key won, which
+  Settings shows as **Taken Over** in red, naming the keyboards and the likely apps. It is read when
+  Settings shows the Status row and on Diagnostics, never polled. Diagnostics also lists **Apps
+  Changing Keys** — other apps' modifying keyboard taps from `CGGetEventTapList` — where one averaging
+  50 ms or more per event is marked slow, since it delays all typing. Those taps are listed, never
+  acted on: most are benign.
 - **Another Tinycast.** Release and Dev builds would each remap the key and rewrite every event.
   `HyperKeyInstanceLock` holds an `flock` on `com.tinycast.hyper-key.lock` in the shared temporary
   directory while a key is live, and the kernel drops it when its holder exits, so no record goes
@@ -314,8 +323,8 @@ machine for it.
 
 The Settings **Status** row carries a coloured dot, and **Diagnostics…** opens a snapshot from
 `HyperKeyManager.diagnostics()`: Active, Active Key, Event Tap, Run Loop Source, Secure Input, Remapped
-Keyboards, Conflicting Apps, Karabiner and Caps Lock mapping conflicts, with **Refresh** and
-**Restart Hyper Key**.
+Keyboards, Conflicting Apps, Remapped by Another App, Apps Changing Keys, Karabiner and Caps Lock
+mapping conflicts, with **Refresh** and **Restart Hyper Key**.
 
 ### Secure Input
 
