@@ -15,7 +15,6 @@ enum HyperKeyConflictScanner {
         }
     }
 
-    /// Other apps' taps that can rewrite keystrokes, the likeliest owners of a competing Hyper Key.
     static func keyboardTaps() -> [HyperKeyDiagnostics.KeyboardTap] {
         var count: UInt32 = 0
         guard CGGetEventTapList(0, nil, &count) == .success, count > 0 else { return [] }

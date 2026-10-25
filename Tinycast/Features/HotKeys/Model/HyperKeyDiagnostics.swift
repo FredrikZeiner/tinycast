@@ -32,7 +32,6 @@ struct HyperKeyDiagnostics: Equatable, Sendable {
     let karabinerVirtualKeyboards: [String]
     let karabinerConflict: Bool
     let capsLockMappingConflicts: [String]
-    /// Nil unless another app now sends the Hyper key somewhere else.
     let takeover: Takeover?
     let keyboardTaps: [KeyboardTap]
     let secureInputCompatibilityActive: Bool
