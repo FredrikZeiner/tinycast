@@ -139,9 +139,9 @@ If a change touches anything in the right column, the harness on the left is man
 | `form-input-test` | Native field/textarea sizing, editing alignment, placeholders, Tab, Unicode selection, undo and code fonts |
 | `palette-placement-test` | `DesignSystem/Theme.swift`, `Palette/PalettePlacement.swift` |
 | `palette-menu-click-test` | `Palette/PalettePanel.swift` — complete click-away presses and subsequent control activation |
-| `hyper-key-engine-test` | Hyper chord transitions for every physical key, Quick Press timing, source flags, repeats and interruption recovery |
+| `hyper-key-engine-test` | Hyper chord transitions for every physical key, device-bit holds, own-bit and other-Shift residue, released modifiers, the Quick Press rule, repeats and interruption recovery |
 | `hotkey-test` | `HotKeys/Model/DoubleTapModifier.swift`, `DoubleTapDetector.swift`, `ModifierKey.swift`, `ModifierKeyDetector.swift`, `HotKeyBinding.swift`, `HotKeySpelling.swift`, `HyperKey.swift`, `HIDKeyMapping.swift`, `HotKeyAction.swift`, `Service/KeyShortcut.swift`, and the command→action mapping in `Launcher/Model/CommandID.swift` |
-| `hyper-key-test` | `HotKeys/Model/HIDKeyMapping.swift`, `HyperKeyConflictPolicy.swift`, `Service/KeyboardRemapper.swift` — mapping ownership, refused writes, crash recovery, device reconnection, Caps Lock and 🎤 remaps sharing a keyboard, conflict severities, Modifier Keys and Karabiner parsing |
+| `hyper-key-test` | `HotKeys/Model/HIDKeyMapping.swift`, `HyperKeyConflictPolicy.swift`, `Service/KeyboardRemapper.swift`, `HyperKeyInstanceLock.swift` — mapping ownership, refused writes, crash recovery, device reconnection, Caps Lock and 🎤 remaps sharing a keyboard, conflict severities, Modifier Keys and Karabiner parsing, one process per Hyper Key |
 | `hotkey-dispatch-test` | `HotKeys/Service/HotKeyManager.swift` — Secure Input side isolation, shared Control registrations, press/release routing, recording and cancellation; isolated preferences and simulated Carbon registration |
 | `dictation-test` | `Dictation/Model/DictationModel.swift`, `DictationTextFormatter.swift` — model paths and text formatting |
 | `dictation-field-test` | Composer rebinding and teardown, field-scoped dictation cancellation, and queued insertion validity; synthetic capture and real AppKit editors |
@@ -553,13 +553,20 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Plug in a second keyboard: Caps Lock is Hyper there too. Change Hyper Key to a modifier while
   disconnected, then reconnect: Caps Lock works normally again
 - An unused Escape action still fires after a long hold; Caps Lock ignores very brief accidental
-  presses. A combo never triggers Quick Press. Check Caps Lock input-source switching as well
+  presses while off, yet any press turns it off. A combo never triggers Quick Press. With Caps Lock
+  input-source switching on, a short press switches sources only while Caps Lock is off
+- Right Command as Hyper with Left Command held keeps the chord; Left Shift as Hyper with Include
+  Shift off sends ⌃⌥⇧⌘K when Right Shift is held with K
+- Run Tinycast Dev next to Tinycast: the second reads Blocked and names the first; quitting the
+  first hands the Hyper Key over without a relaunch
+- Revoke Accessibility while Hyper is live: the key goes back to normal. Grant it again: Hyper
+  returns within a couple of seconds without a relaunch
 - Lock the screen: Caps Lock types capitals in the password field; unlocking restores Hyper. Sleep
   and wake do the same
 - With Hyperkey running, the status reads Blocked and a HUD names it; quitting Hyperkey restores
   Hyper without a relaunch. Diagnostics… lists BetterTouchTool as a warning when it runs
 - Remap Caps Lock in Keyboard ▸ Modifier Keys: Diagnostics… reports it with the keyboard's name
-- In a password field, Hyper with Caps Lock shows the Secure Input HUD. Turn on Secure Input
+- In a password field, Hyper with Caps Lock shows the Secure Input HUD at once. Turn on Secure Input
   Compatibility: a Hyper shortcut now fires there, and Diagnostics… names the Secure Input holder
 - With Secure Input held, record Hyper+J with and without Secure Input Compatibility: both save ✦J,
   never F18 or ⌃J, and a quick Hyper+J leaves Caps Lock off

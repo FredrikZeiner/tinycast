@@ -49,6 +49,8 @@ return `OSStatus` synchronously, preserving event order and hold-to-talk release
   so another tool's mapping for another key always survives Tinycast turning the Hyper Key off.
 - **A raw Caps Lock is never read as Hyper.** Its latch carries no release, so treating one as a press
   leaves the chord on every keystroke until the next press.
+- **`HyperKeyTap`'s callback never waits on the main actor.** Every keystroke on the Mac passes through
+  it, so the engine runs on the tap's own thread and only effects hop to main.
 
 ## Persistence
 
@@ -152,8 +154,8 @@ at `HotKeyBinding`.
 `DoubleTapDetector` is the recognizer: Foundation-only, pure, and clock-injected (`now` is a caller-
 supplied monotonic timestamp), so `Tests/hotkey-test.swift` drives it without an event tap. A **tap**
 is a press that starts from no modifiers held, keeps exactly one of the four held with no `fn`
-alongside, sees no key press or mouse click, and is released within `maxHold` (250 ms — the same
-window `HyperKeyTap` calls a quick press). A **double-tap** is a second tap of the same modifier
+alongside, sees no key press or mouse click, and is released within `maxHold` (250 ms). A
+**double-tap** is a second tap of the same modifier
 starting within `maxGap` (300 ms) of the first one's release.
 
 Only _momentary_ keys may feed `hasOtherModifiers`. Caps Lock must not: `maskAlphaShift` tracks the
@@ -183,20 +185,23 @@ where a bare ⇧ combo would shadow typing.
 
 `HyperKeyManager` turns one physical key — Caps Lock or any of the eight side-specific modifiers —
 into the ⌃⌥(⇧)⌘ chord system-wide. It owns the lifecycle and policy. `HyperKeyEngine` decides
-transitions and Quick Press actions; `HyperKeyTap` owns a **modifying** `CGEventTap`, a separate layer
-from `HotKeyCenter` because Carbon cannot intercept a lone key at all. The rewritten flags flow onward into Carbon matching, so existing combo hotkeys fire from
-Hyper+key with no extra registration.
+transitions; `HyperKeyTap` owns a **modifying** `CGEventTap` at the HID level, a separate layer from
+`HotKeyCenter` because Carbon cannot intercept a lone key at all. The tap is served by its own thread,
+`com.tinycast.hyper-key`, with the engine behind a `Mutex` — the shape `CommandEscapeTap` uses — so a
+busy main thread never delays typing or times the tap out. The rewritten flags flow onward into Carbon
+matching, so existing combo hotkeys fire from Hyper+key with no extra registration.
 
 Which key is chosen persists as a `HyperKeyPhysicalKey` raw value under `hyperKeyPhysicalKey` —
 renaming a case is a migration, and a removed case decodes to `.none`. Function keys are not offered
 as Hyper keys, so Hyper Key needs only the existing Accessibility grant and does not request Input
 Monitoring.
 
-`HyperKeyManager.apply()` is the one funnel. Settings, sleep, lock, session switches and blocking apps
-all call it, and it converges on what the settings ask for: no key is `.off`, a running blocker is
+`HyperKeyManager.apply()` is the one funnel. Settings, sleep, lock, session switches, blocking apps
+and the system notifications under [Lifecycle](#lifecycle) all call it, and it converges on what the
+settings ask for: no key is `.off`, a running blocker or another Tinycast process holding the key is
 `.blocked`, a pause reason is `.paused`, a refused remap is `.remapUnavailable`; missing grants report
 `.needsAccessibility`. The input engine must install before a HID mapping is changed, so a missing
-permission leaves the physical key usable. The watchdog retries unavailable routes and missing permissions.
+permission leaves the physical key usable.
 
 ### Caps Lock has to stop being Caps Lock
 
@@ -245,22 +250,31 @@ back on once none of those holds.
 
 ### Press tracking reads the event
 
-A modifier's `flagsChanged` carries its own device bit (`NX_DEVICE…KEYMASK`) while that key is down,
-so `ModifierKey.held(in:)` reads each press and release of a modifier Hyper key from the event itself.
-A hold dropped mid-press — by a Secure Input transition, a tap timeout or a pause — emits an explicit
-zero-flags Command release and cancels any deferred Quick Press action. It costs at most the
-rest of that press and can never invert the key. Toggling instead would let one dropped hold read
-every later release as a press, leaving the chord on every keystroke; querying `CGEventSource` key
-state **races the release**. Nothing toggles: Caps Lock is a press only once remapped, never as its
-raw latch. Quick Press effects and remap repair are deferred to the next runloop turn, with cancellation
-and route validation before effects. Modifier releases on interruption are posted immediately.
+Every key event carries the device bit (`NX_DEVICE…KEYMASK`) of each modifier that is down, so a
+modifier Hyper key is read from the event rather than remembered: any keyDown or `flagsChanged` whose
+flags carry its bit gets the chord, and its own `flagsChanged` edges become Left Command transitions.
+Nothing can stick — an event without the bit clears a hold whose release went unseen — so an
+interruption needs no synthetic release, which would only flicker a chord the user still holds.
+
+F18 has no device bit, so its hold is tracked from keyDown to keyUp. A hold dropped mid-press — by a
+Secure Input transition, a tap timeout or a pause — emits an explicit zero-flags Command release. It
+costs at most the rest of that press and can never invert the key. Toggling instead would let one
+dropped hold read every later release as a press; querying `CGEventSource` key state **races the
+release**. Caps Lock is a press only once remapped, never as its raw latch. Quick Press and remap
+repair hop to the main actor after the event and are dropped when the route changed or the tap went
+away in between.
+
+A release keeps every other modifier that is still held. Clearing every flag instead would tell apps a
+held ⌘ was let go until it next changed.
 
 The flags OR'd into every rewritten event are the generic ⌃⌥(⇧)⌘ masks **plus the left-side device
 bits** (`NX_DEVICE…KEYMASK`, from `IOLLEvent.h`). Some consumers distinguish sides, and generic-only
 flags do not always read as fully pressed. The Hyper key's own residue is scrubbed in the same pass:
-Caps Lock's alpha-shift bit and its remapped Right Control device bit, or — for a key modifier outside
-the Hyper set — its generic mask and both device bits. Events the tap posts carry a `"TYCT"` marker in `.eventSourceUserData`, the same FourCC
-`HotKeyCenter` uses, so the tap never reacts to its own synthetics.
+Caps Lock's alpha-shift bit and, with Secure Input Compatibility, its Right Control device bit; a
+modifier Hyper key's own device bit; and for a Shift outside the Hyper set, the generic ⇧ — unless the
+other Shift's device bit shows that one is held too. Events the tap posts carry a `"TYCT"` marker in
+`.eventSourceUserData`, the same FourCC `HotKeyCenter` uses, so the tap never reacts to its own
+synthetics.
 
 A Quick Press key is posted with **`flags` cleared explicitly**, like every other synthetic in the app.
 A keyboard event built from `.combinedSessionState` inherits the source's modifiers, and the release
@@ -269,9 +283,11 @@ Terminals read the raw `0x1B` and did not care; a focused field editor and any e
 swallowed it, which is why Quick Press worked in Ghostty but never in Zed or the palette itself.
 
 Quick Press depends on whether another key participated, rather than a 250 ms upper limit. Escape
-fires on any unused release. Original Caps Lock ignores presses shorter than 75 ms. With macOS's Caps
-Lock input-source preference enabled, a press shorter than 150 ms switches between the last ASCII source and a recent non-ASCII source; a longer press toggles Caps Lock.
-A combo or a cancelled hold never runs its Quick Press action.
+fires on any unused release. Original Caps Lock follows macOS, which delays only turning Caps Lock
+on: any unused press turns it off, and turning it on needs a 75 ms hold. With macOS's Caps Lock
+input-source preference enabled, turning it on needs 150 ms, and a shorter press while it is off
+switches between the last ASCII source and a recent non-ASCII source. `HyperKeyQuickPress.effect` is
+that rule. A combo or a cancelled hold never runs its Quick Press action.
 
 ### Conflicts and diagnostics
 
@@ -283,6 +299,11 @@ machine for it.
   `NSWorkspace.runningApplications` re-runs `apply()`, but only for those bundle IDs. Launch and
   terminate notifications cannot do it: macOS skips them for menu-bar apps, and both blockers are ones. BetterTouchTool is a
   **warning**, listed and never acted on. Other running event taps are not conflicts: most are benign.
+- **Another Tinycast.** Release and Dev builds would each remap the key and rewrite every event.
+  `HyperKeyInstanceLock` holds an `flock` on `com.tinycast.hyper-key.lock` in the shared temporary
+  directory while a key is live, and the kernel drops it when its holder exits, so no record goes
+  stale. The holder writes its pid so the refused process can name it in the `.blocked` HUD; the
+  watchdog takes over once the lock is free.
 - **Karabiner.** It seizes the real keyboards and types through its virtual keyboard, so that one gets
   the remap too. A conflict is that keyboard already sending our key elsewhere, or the selected profile
   in `~/.config/karabiner/karabiner.json` remapping the key.
@@ -298,8 +319,11 @@ Keyboards, Conflicting Apps, Karabiner and Caps Lock mapping conflicts, with **R
 ### Secure Input
 
 While an app holds Secure Input, macOS hides every keystroke from every event tap, so no tap can build
-the chord. `SecureInputMonitor` polls `IsSecureEventInputEnabled` on the health tick, and a transition
-drops any half-held chord, since the tap saw neither end of what was typed inside. Diagnostics name the
+the chord. `SecureInputMonitor` follows SkyLight's private Secure Input notifications
+(`SLSRegisterNotifyProc`, types 752 and 753, bound with `dlsym`) and re-reads
+`IsSecureEventInputEnabled` on each, so a transition is seen as it happens; a macOS without the
+symbols reports none, while Diagnostics still read the state directly. A transition drops any
+half-held chord, since the tap saw neither end of what was typed inside. Diagnostics name the
 holder from the `kCGSSessionSecureInputPID` macOS records on the console session in `IOResources` —
 hedged, because it is often wrong — and lead with running password managers and terminals.
 
@@ -353,10 +377,17 @@ it, so ✦Q can be neither recorded nor fired while it is on.
 ### Lifecycle
 
 The modifying tap needs the **Accessibility** grant. Choosing a key in Settings is the one place
-that prompts for it. A one-second watchdog runs while a key is live: it retries installation
-until the grant lands, notices revocation, revives a tap the system disabled on timeout or user input,
-polls Secure Input, and repairs lost remaps. The HID remap outlives the process, so
-`applicationWillTerminate` takes it off every keyboard before exiting.
+that prompts for it. Nothing polls while a key is live:
+
+- the tap re-enables itself when the system disables it on timeout or user input;
+- the Darwin notification `com.apple.coregraphics.eventTapRemoved` rebuilds a tap macOS removed, which
+  also re-checks the grant;
+- `com.apple.tcc.access.changed` re-applies a second later, once tccd's change reads back;
+- Secure Input arrives as notifications, and a lost remap shows itself as a raw Caps Lock.
+
+The one-second watchdog runs only while waiting — for a grant, a refused remap or a blocker — and
+retries `apply()`. The HID remap outlives the process, so `applicationWillTerminate` takes it off every
+keyboard before exiting.
 
 ## The Dictation key
 

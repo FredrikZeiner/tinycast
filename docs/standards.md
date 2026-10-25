@@ -89,6 +89,7 @@ fit the table.
 | `Policy`      | A pure decision — no state, no effects                                        |
 | `Remapper`    | Keeps one HID key mapping on every matching device, including later arrivals  |
 | `Migration`   | Repairs state an older release left behind; deleted after one stable release  |
+| `Lock`        | Holds a cross-process exclusive claim that the kernel frees on exit           |
 
 `Manager` is the one worth thinking twice about. It means _lifecycle plus policy_, which is a lot for one
 type, so there are only four: `ClipboardManager` (polls, and owns the capture policy and the

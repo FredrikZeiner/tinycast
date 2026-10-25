@@ -13,6 +13,7 @@ struct HyperKeyTest {
         modifierKeysPreferences()
         karabinerConfig()
         remapperLifecycle()
+        instanceLock()
         print(failures == 0 ? "All hyper key checks passed" : "\(failures) hyper key check(s) failed")
         if failures > 0 { exit(1) }
     }
@@ -356,5 +357,19 @@ struct HyperKeyTest {
         check(
             "an unreadable config is not a conflict",
             !HyperKeyConflictPolicy.karabinerRemaps("capsLock", config: Data("{".utf8)))
+    }
+
+    static func instanceLock() {
+        let url = FileManager.default.temporaryDirectory.appending(path: "hyper-key-test.\(UUID()).lock")
+        defer { try? FileManager.default.removeItem(at: url) }
+        let first = HyperKeyInstanceLock(url: url)
+        let second = HyperKeyInstanceLock(url: url)
+        check("the first process takes the Hyper Key", first.acquire())
+        check("taking it again is a no-op", first.acquire())
+        check("a second process is refused", !second.acquire())
+        check("the refused process learns the holder", second.holder() == getpid())
+        first.release()
+        check("release hands the Hyper Key over", second.acquire())
+        check("the old holder is refused in turn", !first.acquire())
     }
 }

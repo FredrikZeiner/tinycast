@@ -632,6 +632,7 @@ run hyper-key-engine-test  Tinycast/Features/HotKeys/Model/HyperKeyEngine.swift 
 run hyper-key-test         Tinycast/Features/HotKeys/Model/HIDKeyMapping.swift \
                            Tinycast/Features/HotKeys/Model/HyperKeyConflictPolicy.swift \
                            Tinycast/Features/HotKeys/Service/KeyboardRemapper.swift \
+                           Tinycast/Features/HotKeys/Service/HyperKeyInstanceLock.swift \
                            Tests/hyper-key-fixtures.swift
 run hotkey-dispatch-test   Tinycast/Features/HotKeys/Model/DoubleTapModifier.swift \
                            Tinycast/Features/HotKeys/Model/ModifierKey.swift \
