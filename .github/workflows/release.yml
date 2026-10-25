@@ -31,6 +31,13 @@ jobs:
       bundle_id: ${{ steps.meta.outputs.bundle_id }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          # The migration check needs every commit and tag; blobs it never reads.
+          fetch-depth: 0
+          filter: blob:none
+
+      - name: Check migrations
+        run: ./Scripts/check-migrations.sh
 
       - name: Select Xcode 26
         run: |
