@@ -275,10 +275,13 @@ final class HyperKeyTap {
             let isAutorepeat = event.getIntegerValueField(.keyboardEventAutorepeat) != 0
             let now = ProcessInfo.processInfo.systemUptime
             let (route, result) = state.withLock { state in
-                (
-                    state.engine.route,
+                let route = state.engine.route
+                let insideSecureInput = keyCode == route?.tapKeyCode && IsSecureEventInputEnabled()
+                return (
+                    route,
                     state.engine.handle(
-                        type: type, keyCode: keyCode, flags: flags, isAutorepeat: isAutorepeat, at: now)
+                        type: type, keyCode: keyCode, flags: flags, isAutorepeat: isAutorepeat, at: now,
+                        insideSecureInput: insideSecureInput)
                 )
             }
             if let route, let effect = result.effect {

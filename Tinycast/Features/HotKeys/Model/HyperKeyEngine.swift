@@ -65,7 +65,8 @@ struct HyperKeyEngine: Sendable {
     }
 
     mutating func handle(
-        type: CGEventType, keyCode: Int, flags: UInt64, isAutorepeat: Bool = false, at time: TimeInterval
+        type: CGEventType, keyCode: Int, flags: UInt64, isAutorepeat: Bool = false, at time: TimeInterval,
+        insideSecureInput: Bool = false
     ) -> Result {
         guard let route else { return Result(decision: .pass) }
         if route.key == .capsLock, keyCode == kVK_CapsLock, type == .flagsChanged {
@@ -82,21 +83,26 @@ struct HyperKeyEngine: Sendable {
         if let modifier = route.modifier {
             guard type == .flagsChanged else { return Result(decision: .pass) }
             return transition(
-                isDown: modifier.isHeld(in: flags), flags: removingSourceFlags(from: flags), at: time)
+                isDown: modifier.isHeld(in: flags), flags: removingSourceFlags(from: flags), at: time,
+                insideSecureInput: insideSecureInput)
         }
         guard type == .keyDown || type == .keyUp else { return Result(decision: .pass) }
         guard !isAutorepeat else { return Result(decision: .suppress) }
         let flags = removingSourceFlags(from: flags) & ~CGEventFlags.maskSecondaryFn.rawValue
-        return transition(isDown: type == .keyDown, flags: flags, at: time)
+        return transition(
+            isDown: type == .keyDown, flags: flags, at: time, insideSecureInput: insideSecureInput)
     }
 
-    private mutating func transition(isDown: Bool, flags: UInt64, at time: TimeInterval) -> Result {
+    private mutating func transition(
+        isDown: Bool, flags: UInt64, at time: TimeInterval, insideSecureInput: Bool
+    ) -> Result {
         let command = Int64(kVK_Command)
         if isDown {
             if !isActive {
                 isActive = true
                 downAt = time
-                used = false
+                // Secure Input hides the other keys, so such a press never counts as unused.
+                used = insideSecureInput
             }
             return Result(
                 decision: .rewrite(flags: flags | hyperFlags, keyCode: command, asFlagsChanged: true))

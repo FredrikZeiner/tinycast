@@ -96,7 +96,8 @@ final class HyperKeyManager: HealthCheckable {
         setRoute(route)
         guard tap.install() else { return retryLater(.needsAccessibility) }
         if key == .capsLock, remapper.mapping == nil { tap.unlatchCapsLock() }
-        guard remapper.apply(route.remap) else { return retryLater(.remapUnavailable) }
+        // A modifier needs no remap, so cleanup still pending on some keyboard cannot block it.
+        guard remapper.apply(route.remap) || route.remap == nil else { return retryLater(.remapUnavailable) }
         healthTicker?.unsubscribe(self)
         status = .active
         syncSecureInputHotKeys()

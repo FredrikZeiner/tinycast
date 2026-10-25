@@ -234,7 +234,8 @@ mapping is preserved. A matching entry already placed by another tool is left un
 restores an original while the keyboard still carries its own installed mapping. Entries for other
 keys and later replacements by other tools survive teardown. A keyboard that rejects the write is
 skipped and stays plain Caps Lock; only every connected keyboard rejecting it reports
-`.remapUnavailable`. With no keyboard connected, as after wake before a Bluetooth keyboard
+`.remapUnavailable`. A modifier Hyper key needs no remap, so cleanup still pending on some keyboard
+never blocks it. With no keyboard connected, as after wake before a Bluetooth keyboard
 reconnects, the remap succeeds and hot plug places it.
 
 Recovery records are saved before each write, keyed by the HID service's registry ID and the current
@@ -344,7 +345,8 @@ Carbon hotkeys still fire inside Secure Input, and both remedies are built on th
 
 The tap still sees a modifier's `flagsChanged` inside Secure Input, but never the key pressed between
 them. So **Quick Press never fires there**: every quick Hyper combo would read as a lone press and
-toggle Caps Lock. And the **recorder reads the Hyper key itself** — F18's press and release, or the
+toggle Caps Lock. A press that starts inside Secure Input never counts as unused, even when the
+shortcut it fires closes Secure Input before the release. And the **recorder reads the Hyper key itself** — F18's press and release, or the
 route modifier's device bit — from `ShortcutCaptureSession.hyperRoute`, which `HyperKeyManager` sets
 alongside the tap's route. Left to the tap, a recording made inside Secure Input saved bare F18, or ⌃
 plus the key.

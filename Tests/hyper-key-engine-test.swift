@@ -157,6 +157,13 @@ struct HyperKeyEngineTest {
             "Secure Input Compatibility still reports an unused press",
             compatibleEngine.handle(type: .flagsChanged, keyCode: compatible.tapKeyCode, flags: 0, at: 0.2)
                 .effect == .unusedPress(heldFor: 0.2))
+        _ = compatibleEngine.handle(
+            type: .flagsChanged, keyCode: compatible.tapKeyCode, flags: 0x2000, at: 1,
+            insideSecureInput: true)
+        check(
+            "a press begun inside Secure Input never counts as unused",
+            compatibleEngine.handle(type: .flagsChanged, keyCode: compatible.tapKeyCode, flags: 0, at: 1.2)
+                .effect == nil)
 
         let modifier = HyperKeyPhysicalKey.rightOption.route(secureInputCompatible: false)!
         var modifierEngine = HyperKeyEngine(route: modifier)
