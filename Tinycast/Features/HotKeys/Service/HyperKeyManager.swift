@@ -54,7 +54,7 @@ final class HyperKeyManager: HealthCheckable {
 
     /// The HID remap outlives the process, so hand the key back before exiting.
     func prepareForTermination() {
-        remapper.apply(nil)
+        stop(.off)
     }
 
     func diagnostics() -> HyperKeyDiagnostics {
@@ -93,12 +93,25 @@ final class HyperKeyManager: HealthCheckable {
             return stop(.blocked(appName: blocker))
         }
         guard pauseReasons.isEmpty else { return stop(.paused) }
-        if route.remap != nil, remapper.mapping == nil { tap.unlatchCapsLock() }
-        guard remapper.apply(route.remap) else { return stop(.remapUnavailable) }
+        guard Permissions.isAccessibilityTrusted() else { return waitForPermission(.needsAccessibility) }
         setRoute(route)
+        guard tap.install() else {
+            return waitForPermission(.needsAccessibility)
+        }
+        if key == .capsLock, remapper.mapping == nil { tap.unlatchCapsLock() }
+        guard remapper.apply(route.remap) else {
+            stop(.remapUnavailable)
+            healthTicker?.subscribe(self)
+            return
+        }
         healthTicker?.subscribe(self)
-        status = tap.install() ? .active : .needsAccessibility
+        status = .active
         syncSecureInputHotKeys()
+    }
+
+    private func waitForPermission(_ status: Status) {
+        stop(status)
+        healthTicker?.subscribe(self)
     }
 
     private func stop(_ status: Status) {
@@ -117,8 +130,14 @@ final class HyperKeyManager: HealthCheckable {
 
     /// That press latched Caps Lock on a keyboard that lost the remap, so undo it once repaired.
     private func repairRemap() {
-        guard status == .active, remapper.repair() else { return }
-        tap.unlatchCapsLock()
+        guard status == .active else { return }
+        let result = remapper.repair()
+        guard result.succeeded else {
+            stop(.remapUnavailable)
+            healthTicker?.subscribe(self)
+            return
+        }
+        if result.changed, settings.hyperKey == .capsLock { tap.unlatchCapsLock() }
     }
 
     private var isSecureInputCompatible: Bool {
@@ -127,18 +146,21 @@ final class HyperKeyManager: HealthCheckable {
 
     /// One-second watchdog while a key is live. See docs/features/hotkeys.md#lifecycle.
     func healthCheck() {
-        guard tap.route != nil else { return }
+        guard settings.hyperKey != .none else { return }
         secureInput.refresh()
-        let previous = status
-        if !tap.isInstalled {
-            if tap.install() { status = .active }
+        if status != .active {
+            apply()
         } else if !Permissions.isAccessibilityTrusted() {
+            apply()
+        } else if tap.runLoopSourceIsValid == false {
             tap.tearDown()
-            status = .needsAccessibility
-        } else if tap.isEnabled == false {
+            apply()
+        } else if !tap.isInstalled || tap.isEnabled == false {
             tap.reenable()
+            apply()
+        } else {
+            repairRemap()
         }
-        if status != previous { syncSecureInputHotKeys() }
     }
 
     // MARK: - Secure Input

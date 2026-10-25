@@ -63,10 +63,9 @@ final class KeyboardRemapper {
         reconcileAll()
     }
 
-    func repair() -> Bool {
-        guard mapping != nil else { return false }
-        let result = reconcileAll()
-        return result.succeeded && result.changed
+    func repair() -> (succeeded: Bool, changed: Bool) {
+        guard mapping != nil else { return (true, false) }
+        return reconcileAll()
     }
 
     private func makeSystem() -> HIDEventSystem? {

@@ -143,8 +143,9 @@ struct HyperKeyTest {
             check("hot plug remaps new keyboards", HIDEventSystem.mappings[2] == [toF18])
             HIDEventSystem.mappings[2] = []
             check(
-                "repair restores a lost mapping", remapper.repair() && HIDEventSystem.mappings[2] == [toF18])
-            check("repair avoids writes when correct", !remapper.repair())
+                "repair restores a lost mapping",
+                remapper.repair().changed && HIDEventSystem.mappings[2] == [toF18])
+            check("repair avoids writes when correct", !remapper.repair().changed)
             check("route switching succeeds", remapper.apply(toRightControl))
             check(
                 "route switching reaches both keyboards",
@@ -156,6 +157,17 @@ struct HyperKeyTest {
                 "cleanup preserves unrelated mappings",
                 HIDEventSystem.mappings[1] == [otherTool] && HIDEventSystem.mappings[2] == [])
             check("completed cleanup removes recovery", defaults.data(forKey: recoveryKey) == nil)
+        }
+        fixture { remapper, _ in
+            remapper.apply(toF18)
+            HIDEventSystem.mappings[1] = []
+            HIDEventSystem.rejectedKeyboards = [1]
+            check("a lost mapping that cannot be repaired reports failure", !remapper.repair().succeeded)
+            HIDEventSystem.rejectedKeyboards = []
+            check(
+                "a lost mapping can recover later",
+                remapper.repair().succeeded
+                    && HIDEventSystem.mappings[1] == [toF18])
         }
         fixture { remapper, _ in
             HIDEventSystem.rejectedKeyboards = [1]

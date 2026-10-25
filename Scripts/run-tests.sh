@@ -621,6 +621,14 @@ run slow -O raycast-test   Tinycast/Features/Backup/Model/RaycastImportError.swi
                            Tinycast/Features/Clipboard/Model/ColorSpaces.swift
 run settings-backup-test   Tinycast/Features/Settings/AppSettingsKey.swift \
                            Tinycast/Features/Backup/Model/SettingsBackupCoverage.swift
+run hyper-key-engine-test  Tinycast/Features/HotKeys/Model/HyperKeyEngine.swift \
+                           Tinycast/Features/HotKeys/Model/HyperKey.swift \
+                           Tinycast/Features/HotKeys/Model/HIDKeyMapping.swift \
+                           Tinycast/Features/HotKeys/Model/ModifierKey.swift \
+                           Tinycast/Features/HotKeys/Model/DoubleTapModifier.swift \
+                           Tinycast/Features/HotKeys/Model/HotKeyBinding.swift \
+                           Tinycast/Features/HotKeys/Service/KeyShortcut.swift \
+                           Tinycast/Platform/ASCIIKeyboardLayout.swift
 run hyper-key-test         Tinycast/Features/HotKeys/Model/HIDKeyMapping.swift \
                            Tinycast/Features/HotKeys/Model/HyperKeyConflictPolicy.swift \
                            Tinycast/Features/HotKeys/Service/KeyboardRemapper.swift \

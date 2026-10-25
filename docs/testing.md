@@ -139,6 +139,7 @@ If a change touches anything in the right column, the harness on the left is man
 | `form-input-test` | Native field/textarea sizing, editing alignment, placeholders, Tab, Unicode selection, undo and code fonts |
 | `palette-placement-test` | `DesignSystem/Theme.swift`, `Palette/PalettePlacement.swift` |
 | `palette-menu-click-test` | `Palette/PalettePanel.swift` — complete click-away presses and subsequent control activation |
+| `hyper-key-engine-test` | Hyper chord transitions for every physical key, Quick Press timing, source flags, repeats and interruption recovery |
 | `hotkey-test` | `HotKeys/Model/DoubleTapModifier.swift`, `DoubleTapDetector.swift`, `ModifierKey.swift`, `ModifierKeyDetector.swift`, `HotKeyBinding.swift`, `HotKeySpelling.swift`, `HyperKey.swift`, `HIDKeyMapping.swift`, `HotKeyAction.swift`, `Service/KeyShortcut.swift`, and the command→action mapping in `Launcher/Model/CommandID.swift` |
 | `hyper-key-test` | `HotKeys/Model/HIDKeyMapping.swift`, `HyperKeyConflictPolicy.swift`, `Service/KeyboardRemapper.swift` — mapping ownership, refused writes, crash recovery, device reconnection, Caps Lock and 🎤 remaps sharing a keyboard, conflict severities, Modifier Keys and Karabiner parsing |
 | `hotkey-dispatch-test` | `HotKeys/Service/HotKeyManager.swift` — Secure Input side isolation, shared Control registrations, press/release routing, recording and cancellation; isolated preferences and simulated Carbon registration |
@@ -546,8 +547,13 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Recording captures a shortcut, and the old binding does not fire while recording
 - A conflicting binding is rejected and names its current owner
 - A double-tap binding fires; Hyper Key remaps and its status dot is green
-- Each Hyper Key choice — Caps Lock and all eight Left/Right modifiers — sends the chord, and Quick
-  Press is offered for Caps Lock only. Plug in a second keyboard: Caps Lock is Hyper on it too
+- Each Hyper Key choice — Caps Lock and all eight Left/Right modifiers — sends the chord.
+  Quick Press is offered for Caps Lock only, with original-key and Escape actions. Hyper Key never
+  requests Input Monitoring
+- Plug in a second keyboard: Caps Lock is Hyper there too. Change Hyper Key to a modifier while
+  disconnected, then reconnect: Caps Lock works normally again
+- An unused Escape action still fires after a long hold; Caps Lock ignores very brief accidental
+  presses. A combo never triggers Quick Press. Check Caps Lock input-source switching as well
 - Lock the screen: Caps Lock types capitals in the password field; unlocking restores Hyper. Sleep
   and wake do the same
 - With Hyperkey running, the status reads Blocked and a HUD names it; quitting Hyperkey restores

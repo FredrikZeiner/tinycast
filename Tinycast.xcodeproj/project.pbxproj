@@ -163,6 +163,7 @@
 		3155DE3A2195764DDEA97F26 /* ClipboardStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 201FCD08ACA933378876385B /* ClipboardStore.swift */; };
 		3162C31B1971F738F9CE05E9 /* ChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F29EE2711B96305EE10B8D8 /* ChatMessage.swift */; };
 		31E0E4E0782A79504CEB588D /* ScrollIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 622E1F1C01B954DCA2199BCD /* ScrollIntent.swift */; };
+		321461D5E9B08C43757A0C57 /* HyperKeyEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8CE803A775A511A3336F01 /* HyperKeyEngine.swift */; };
 		321B4E5AAA0A69F83403F408 /* ImageDerivative.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB3FE08E1D7AF4CBB87654CA /* ImageDerivative.swift */; };
 		32238C3CCA0310804D30506A /* ExtensionCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7DDDF0D150C30D0D0FC0BFD /* ExtensionCatalog.swift */; };
 		3278D86A619DC587B10EEC1B /* MCPTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7B8990163AB02BC5E29D7B8 /* MCPTool.swift */; };
@@ -1473,6 +1474,7 @@
 		A9F256977D955CC53C1D914E /* SymbolPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymbolPicker.swift; sourceTree = "<group>"; };
 		AA6DDE1843D16C172AAA1002 /* ExtensionListPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionListPanel.swift; sourceTree = "<group>"; };
 		AA7B3EB88881CEEFCE71448D /* Permissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Permissions.swift; sourceTree = "<group>"; };
+		AA8CE803A775A511A3336F01 /* HyperKeyEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HyperKeyEngine.swift; sourceTree = "<group>"; };
 		AAB5B3B85E8B34DB3CF9EA70 /* HIDKeyMapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HIDKeyMapping.swift; sourceTree = "<group>"; };
 		AAD838940E655559E32BE8EA /* UninstallPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UninstallPlan.swift; sourceTree = "<group>"; };
 		ABB9DB77DCE25C41D86BB955 /* SearchRelevance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchRelevance.swift; sourceTree = "<group>"; };
@@ -3185,6 +3187,7 @@
 				95BFA41B0D7F369A8CF1E013 /* HyperKey.swift */,
 				50B776C855E29FF18F696676 /* HyperKeyConflictPolicy.swift */,
 				30712AF270CDA8D67F6C5E83 /* HyperKeyDiagnostics.swift */,
+				AA8CE803A775A511A3336F01 /* HyperKeyEngine.swift */,
 				58E4CA2F03AC089232301F8E /* ModifierKey.swift */,
 				82B5E917A4EFDC153C6780E8 /* ModifierKeyDetector.swift */,
 			);
@@ -4403,6 +4406,7 @@
 				7825EA5D79B1C6F6B166E828 /* HyperKeyConflictScanner.swift in Sources */,
 				0964D6642A8FB99D9D498A70 /* HyperKeyDiagnostics.swift in Sources */,
 				F7C3DF01BB86D50EA8D82A56 /* HyperKeyDiagnosticsSection.swift in Sources */,
+				321461D5E9B08C43757A0C57 /* HyperKeyEngine.swift in Sources */,
 				095964C2CAFAC9D3E34C25C6 /* HyperKeyManager.swift in Sources */,
 				FEDCCB8E3425E9B88A2F39F8 /* HyperKeySettingsSection.swift in Sources */,
 				122CA8786B58966376B27DC1 /* HyperKeyTap.swift in Sources */,
