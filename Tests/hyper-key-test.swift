@@ -463,6 +463,11 @@ struct HyperKeyTest {
             check("active remapping retains its caller's lock", waitingLock.isHeld && !ownerLock.acquire())
             waiting.apply(nil)
         }
+
+        fixture { _, idle, ownerLock, waitingLock, _ in
+            ownerLock.acquire()
+            check("idle teardown with no journal skips the lock", idle.apply(nil) && !waitingLock.isHeld)
+        }
     }
 
     static func instanceLock() {

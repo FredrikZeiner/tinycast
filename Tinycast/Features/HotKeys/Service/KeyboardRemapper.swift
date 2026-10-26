@@ -99,7 +99,9 @@ final class KeyboardRemapper {
 
     @discardableResult
     private func reconcileAll() -> (succeeded: Bool, changed: Bool) {
-        withOwnership(unavailable: (false, false)) {
+        // Idle teardown must not briefly hold the lock while another copy tries to acquire it.
+        guard mapping != nil || defaults.object(forKey: recoveryKey) != nil else { return (true, false) }
+        return withOwnership(unavailable: (false, false)) {
             guard mapping != nil || !savedMappings.isEmpty else { return (true, false) }
             guard bootSessionID != nil, let system else { return (false, false) }
             let keyboards = system.keyboards
