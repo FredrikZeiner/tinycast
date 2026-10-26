@@ -245,6 +245,11 @@ next launch. Failed cleanup retains its record and is retried on relaunch or key
 Records from another boot are ignored because HID mappings do not survive a reboot. The client stays
 alive after first use so connected keyboards receive the remap or finish pending cleanup.
 
+Hyper's remapper takes the instance lock before any mapping or recovery write, including startup,
+teardown and reconnect cleanup. It reloads the journal under the lock so a waiting copy cannot use
+another owner's stale recovery records. Cleanup without a live Hyper key borrows the lock only for
+that operation; a blocked copy leaves both the mapping and journal alone.
+
 The mapping comes off on unbind, on quit, while the Mac sleeps, while the screen is locked — a password
 typed at the lock screen needs a real Caps Lock — and while another user's session is active, and goes
 back on once none of those holds.
@@ -311,9 +316,9 @@ machine for it.
   acted on: most are benign.
 - **Another Tinycast.** Release and Dev builds would each remap the key and rewrite every event.
   `HyperKeyInstanceLock` holds an `flock` on `com.tinycast.hyper-key.lock` in the shared temporary
-  directory while a key is live, and the kernel drops it when its holder exits, so no record goes
-  stale. The holder writes its pid so the refused process can name it in the `.blocked` HUD; the
-  watchdog takes over once the lock is free.
+  directory while a key is live and during recovery cleanup. The kernel drops it when its holder
+  exits, so no record goes stale. The holder writes its pid so the refused process can name it in the
+  `.blocked` HUD; the watchdog takes over once the lock is free.
 - **Karabiner.** It seizes the real keyboards and types through its virtual keyboard, so that one gets
   the remap too. A conflict is that keyboard already sending our key elsewhere, or the selected profile
   in `~/.config/karabiner/karabiner.json` remapping the key.

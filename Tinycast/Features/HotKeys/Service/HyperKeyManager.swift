@@ -22,7 +22,7 @@ final class HyperKeyManager: HealthCheckable {
     @ObservationIgnored private let settings: AppSettings
     @ObservationIgnored private let hotKeys: HotKeyManager
     @ObservationIgnored private let tap = HyperKeyTap()
-    @ObservationIgnored private let remapper = KeyboardRemapper()
+    @ObservationIgnored private lazy var remapper = KeyboardRemapper(instanceLock: instanceLock)
     @ObservationIgnored private let secureInput = SecureInputMonitor()
     @ObservationIgnored private let instanceLock = HyperKeyInstanceLock()
     @ObservationIgnored private var observers: [NotificationToken] = []
