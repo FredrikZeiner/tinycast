@@ -138,6 +138,7 @@ run app-installation-test  $L/SearchRelevance.swift $L/ScriptRomanization.swift 
                            Tinycast/Features/Launcher/Service/AppLauncher.swift \
                            Tinycast/Features/Launcher/Service/RunningAppsMonitor.swift \
                            Tinycast/Features/Launcher/Service/FavoritesStore.swift \
+                           $FS/Model/FileSearchResult.swift \
                            Tinycast/Features/Launcher/Service/AliasStore.swift \
                            Tinycast/Features/Launcher/Service/VisibilityStore.swift \
                            Tinycast/Features/Launcher/Service/BundleNameCache.swift \

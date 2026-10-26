@@ -113,6 +113,7 @@ If a change touches anything in the right column, the harness on the left is man
 | `file-search-session-test` | serialized query execution, coalescing, cancellation and refresh |
 | `menu-search-test` | `MenuSearch/Model/` decisions, `MenuSearch/Service/` session filtering, the shared `FuzzyMatch` scorer |
 | `action-menu-search-test` | Action-menu query normalization and shared fuzzy matching |
+| `app-installation-test` | Multiple app copies and app-wide preferences; file-favorite persistence, mixed ordering, hidden slots and restoration through the existing favorite key list |
 | `ranking-test` | `Launcher/Model/LauncherRankingStore.swift` |
 | `scopes-test` | `Launcher/Model/SearchScopes.swift` |
 | `app-name-test` | `Platform/AppDisplayName.swift` — every path that names a scanned bundle |
@@ -855,6 +856,20 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
   the five appears in Settings ▸ Commands
 - Export with auto join and camera preview on, import onto a clean profile: both come back **off**,
   while the menu-bar settings carry over
+
+### File favorites
+
+- In Search Files, use ⌘K → Add to Favorites on a folder and ⇧⌘F on a file. Open root search with an
+  empty query: both appear with app favorites in insertion order, including after relaunch.
+- Move files and apps across each other with ⌥⌘↑/↓ and the matching menu actions; selection follows
+  the moved row. Remove a favorite through either path; selection stays within Favorites.
+- Hold ⌘ and check that each displayed ⌘1–⌘0 opens that favorite, including with the meeting card
+  above Favorites and from the compact palette.
+- Search for a saved filename, including a short query and accented text: the favorite appears once.
+  Turn Show in launcher off: saved files remain available; disable File Search: they disappear.
+  Re-enable it: their order returns.
+- Export and import settings: the mixed order survives. Move or remove a saved file: opening reports
+  the failure and Remove from Favorites still works.
 
 ### System actions and window management
 

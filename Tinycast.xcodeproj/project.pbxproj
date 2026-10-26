@@ -175,6 +175,7 @@
 		330AFCA575D718AD10430FBD /* MenuSearchShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 730BF08D764698989DF963A0 /* MenuSearchShortcut.swift */; };
 		33CDC9C90C19C0B87F37C7AA /* DictationTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3514AC5995904AFF15855E68 /* DictationTokenizer.swift */; };
 		341B31B38EAE70EDFD1BA691 /* MeetingDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDBAD3F666C10A869A4EAADB /* MeetingDetailsView.swift */; };
+		3434E1145AB3F7EA0219C502 /* FavoriteActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C5FA7F5281B81B20C33DC89 /* FavoriteActions.swift */; };
 		345D1FCC2085BD0D699DD236 /* FileSearchCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF64F5FCB3872996AE57FDBB /* FileSearchCoordinator.swift */; };
 		359FBB7F7BE95911B07AE9E2 /* DictationModelDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B324E12A254BAD39A13EDD9 /* DictationModelDownloader.swift */; };
 		35D8AA4E6FE6FD020A56BD8A /* HIDEventSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBBE9EB084808581126AAB6B /* HIDEventSystem.swift */; };
@@ -531,6 +532,7 @@
 		9B8C1C35BA7DFC41F1A070CD /* ExtensionSelectionForwarder.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF4FF95DC8A5CD7676DCBA60 /* ExtensionSelectionForwarder.swift */; };
 		9BB417EBD7843DDE09AA0200 /* ChatCopyButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 030E67F6AC9A292F385FB5A5 /* ChatCopyButton.swift */; };
 		9BE84B47BCF0DA5552AB3591 /* CameraCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5873BB8728FD8BC5D256A21 /* CameraCoordinator.swift */; };
+		9CA8CF3C7BB8A0718CA84DCB /* FileSearchResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7420F642776452B469182D0 /* FileSearchResult.swift */; };
 		9CB6AE756ECD2CB3A976A40E /* $(DICTATION_EXECUTABLE_NAME).app in Embed Dependencies */ = {isa = PBXBuildFile; fileRef = D2B73EEB29DA08853752EBAD /* $(DICTATION_EXECUTABLE_NAME).app */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9DB09F96E6F8C226BD9AB1C9 /* SymbolCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 387BE675F580496656E72559 /* SymbolCatalog.swift */; };
 		9DB4319C835DCF8C0723356D /* MenuBarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2902B904C7BD2FC23856EDB9 /* MenuBarItem.swift */; };
@@ -1367,6 +1369,7 @@
 		8BA109C429A1E4E7E2B55BDC /* CalcTimeZone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcTimeZone.swift; sourceTree = "<group>"; };
 		8BE58163F028AC3AD537AAC3 /* WindowLayoutCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowLayoutCoordinator.swift; sourceTree = "<group>"; };
 		8C39345D0335ACA895133ABD /* IconStyleMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconStyleMonitor.swift; sourceTree = "<group>"; };
+		8C5FA7F5281B81B20C33DC89 /* FavoriteActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteActions.swift; sourceTree = "<group>"; };
 		8C85F2A621F5474766E80BFB /* CustomCommandListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCommandListView.swift; sourceTree = "<group>"; };
 		8CBD6D8BC6951A482BDF6169 /* SettingsCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsCoordinator.swift; sourceTree = "<group>"; };
 		8CD7591D273A6484DD48018A /* RaycastImportReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaycastImportReader.swift; sourceTree = "<group>"; };
@@ -2234,6 +2237,7 @@
 				18771DAA9CB0E2551741AE3C /* CompactBar.swift */,
 				E9AEDF156B61DD90C5ADA8FA /* FallbackActionsMenu.swift */,
 				901C92BDC35B5E26BA8BA4AA /* FallbackCoordinator.swift */,
+				8C5FA7F5281B81B20C33DC89 /* FavoriteActions.swift */,
 				858E08BB313EC330C2D5E50C /* LauncherCoordinator.swift */,
 				132C5A534C02305C1A29CC74 /* LauncherList.swift */,
 				B97A8C3E88FEBCBBEADF415B /* LauncherScreen.swift */,
@@ -4363,6 +4367,7 @@
 				30EA70771C555C136F56BA70 /* FallbackCoordinator.swift in Sources */,
 				C5246D93BBA447893D58BD91 /* FallbackStore.swift in Sources */,
 				E5DFE5B70598CD2279D6A2AB /* FallbacksSettingsView.swift in Sources */,
+				3434E1145AB3F7EA0219C502 /* FavoriteActions.swift in Sources */,
 				75EF3CFF00A2215D57A4FBFF /* FavoriteSlots.swift in Sources */,
 				555791AE6CDCF42ECA171B2C /* FavoritesStore.swift in Sources */,
 				BA81E5DE22F944417665D90D /* FeatureCommandsSection.swift in Sources */,
@@ -4850,6 +4855,7 @@
 				9B798FDE094865BA613E00D0 /* FileSearchIgnoreList.swift in Sources */,
 				439F72D2C096C9B814DF11D7 /* FileSearchPolicy.swift in Sources */,
 				A3A6B954A32A36124401716E /* FileSearchQuery.swift in Sources */,
+				9CA8CF3C7BB8A0718CA84DCB /* FileSearchResult.swift in Sources */,
 				CBCE42950D06087AF726AFB2 /* FileSearchScope.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
