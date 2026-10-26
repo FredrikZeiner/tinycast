@@ -750,6 +750,9 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - ⌥⌘C and ⇧⌘B toggle a code block and a quote; with Render Markdown off they do nothing special
 - Settings > Notes > Show Formatting Bar is disabled while Render Markdown is off, Settings search for
   "formatting" lands on it, and a backup round trip restores it
+- With Show in Menu Bar on, the Notes icon appears at once; a click shows Notes and a second click
+  hides it, and right-, Control- and Option-click open Create Note and Search Notes. Turning the
+  setting or Notes off removes the icon, and a ⌘-dragged position survives a relaunch
 - With VoiceOver, the bar reads as "Formatting" with each button named, lit ones as selected, the round
   button announcing Expanded or Collapsed, and the heading button its level; menu rows read their titles
   and the current one as selected

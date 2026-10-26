@@ -66,6 +66,9 @@ struct SettingsBackupTest {
             "the formatting bar rides the settings backup",
             mirrored["notesShowsFormattingBar"] == .notesShowsFormattingBar)
         check(
+            "the Notes menu bar item rides the settings backup",
+            mirrored["notesShowsInMenuBar"] == .notesShowsInMenuBar)
+        check(
             "clipboard enablement rides the settings backup",
             mirrored["clipboardEnabled"] == .clipboardEnabled)
         check(
