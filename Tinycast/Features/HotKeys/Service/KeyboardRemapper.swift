@@ -29,14 +29,14 @@ final class KeyboardRemapper {
 
     private let defaults: UserDefaults
     private let recoveryKey: String
-    private let instanceLock: HyperKeyInstanceLock?
+    private let instanceLock: RemapInstanceLock?
     private let bootSessionID: String?
     private var savedMappings: [String: SavedMapping] = [:]
     private lazy var system: HIDEventSystem? = makeSystem()
 
     init(
         defaults: UserDefaults = .standard, recoveryKey: String = "hyperKeyKeyboardMappings",
-        instanceLock: HyperKeyInstanceLock? = nil
+        instanceLock: RemapInstanceLock? = nil
     ) {
         self.defaults = defaults
         self.recoveryKey = recoveryKey
@@ -99,7 +99,6 @@ final class KeyboardRemapper {
 
     @discardableResult
     private func reconcileAll() -> (succeeded: Bool, changed: Bool) {
-        // Idle teardown must not briefly hold the lock while another copy tries to acquire it.
         guard mapping != nil || defaults.object(forKey: recoveryKey) != nil else { return (true, false) }
         return withOwnership(unavailable: (false, false)) {
             guard mapping != nil || !savedMappings.isEmpty else { return (true, false) }

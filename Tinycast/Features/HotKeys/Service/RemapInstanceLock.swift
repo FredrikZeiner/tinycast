@@ -1,12 +1,12 @@
 import Foundation
 
-/// Lets one Tinycast process — release or Dev — drive the Hyper Key; the kernel frees it on exit.
+/// Lets one Tinycast process — release or Dev — drive a key remap; the kernel frees it on exit.
 @MainActor
-final class HyperKeyInstanceLock {
+final class RemapInstanceLock {
     private let url: URL
     private var descriptor: Int32 = -1
 
-    init(url: URL = FileManager.default.temporaryDirectory.appending(path: "com.tinycast.hyper-key.lock")) {
+    init(url: URL) {
         self.url = url
     }
 

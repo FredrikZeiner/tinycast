@@ -315,7 +315,7 @@ machine for it.
   50 ms or more per event is marked slow, since it delays all typing. Those taps are listed, never
   acted on: most are benign.
 - **Another Tinycast.** Release and Dev builds would each remap the key and rewrite every event.
-  `HyperKeyInstanceLock` holds an `flock` on `com.tinycast.hyper-key.lock` in the shared temporary
+  `RemapInstanceLock` holds an `flock` on `com.tinycast.hyper-key.lock` in the shared temporary
   directory while a key is live and during recovery cleanup. The kernel drops it when its holder
   exits, so no record goes stale. The holder writes its pid so the refused process can name it in the
   `.blocked` HUD; the watchdog takes over once the lock is free.
@@ -411,6 +411,13 @@ Apple's 🎤 key (Consumer `0xC000000CF`) can't be recorded. While a recorder is
 F20, `DictationKeyManager` remaps it to **F20**, a bare F-key Carbon fires on press and release, even
 in Secure Input, with no tap or permission. Otherwise, and in other users' sessions, macOS Dictation
 keeps it. F20 keycaps draw as `mic`.
+
+Like Hyper's, its remap and recovery journal are guarded by a `RemapInstanceLock`, on
+`com.tinycast.dictation-key.lock`, held while the remap is wanted. A second copy that finds the lock
+held leaves both alone: the remap is system-wide, so its F20 already arrives.
+It subscribes to the shared one-second watchdog while waiting for ownership, then takes over when
+the owner quits or stops using the key. Taking ownership, removing the binding, leaving the session
+or terminating stops the retry.
 
 ## Recorder
 

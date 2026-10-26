@@ -370,15 +370,15 @@ struct HyperKeyTest {
         let recoveryKey = "hyperKeyKeyboardMappings"
         func fixture(
             _ body: (
-                KeyboardRemapper, KeyboardRemapper, HyperKeyInstanceLock, HyperKeyInstanceLock, UserDefaults
+                KeyboardRemapper, KeyboardRemapper, RemapInstanceLock, RemapInstanceLock, UserDefaults
             ) -> Void
         ) {
             HIDEventSystem.reset()
             let domain = "tinycast.hyper-key-ownership-test.\(UUID())"
             let defaults = UserDefaults(suiteName: domain)!
             let url = FileManager.default.temporaryDirectory.appending(path: "\(domain).lock")
-            let ownerLock = HyperKeyInstanceLock(url: url)
-            let waitingLock = HyperKeyInstanceLock(url: url)
+            let ownerLock = RemapInstanceLock(url: url)
+            let waitingLock = RemapInstanceLock(url: url)
             defer {
                 ownerLock.release()
                 waitingLock.release()
@@ -473,8 +473,8 @@ struct HyperKeyTest {
     static func instanceLock() {
         let url = FileManager.default.temporaryDirectory.appending(path: "hyper-key-test.\(UUID()).lock")
         defer { try? FileManager.default.removeItem(at: url) }
-        let first = HyperKeyInstanceLock(url: url)
-        let second = HyperKeyInstanceLock(url: url)
+        let first = RemapInstanceLock(url: url)
+        let second = RemapInstanceLock(url: url)
         check("the first process takes the Hyper Key", first.acquire())
         check("taking it again is a no-op", first.acquire())
         check("a second process is refused", !second.acquire())
@@ -482,7 +482,7 @@ struct HyperKeyTest {
         first.release()
         check("release hands the Hyper Key over", second.acquire())
         check("the old holder is refused in turn", !first.acquire())
-        let unavailable = HyperKeyInstanceLock(url: url.appending(path: "missing/lock"))
+        let unavailable = RemapInstanceLock(url: url.appending(path: "missing/lock"))
         check("an unavailable lock file refuses ownership", !unavailable.acquire() && !unavailable.isHeld)
     }
 }
