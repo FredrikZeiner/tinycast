@@ -130,9 +130,9 @@ type. <kbd>←</kbd> and <kbd>→</kbd> select Search or a shortcut, stopping at
 
 **Settings → General → Compact Shortcuts** appears when Compact is selected. Add, change, remove
 and reorder up to four shortcuts, or remove them all for a search-only bar. The defaults are Clipboard
-History, Search Files, Search Snippets and Search Quicklinks. You can also choose Emoji & Symbols,
+History, Emoji & Symbols, Search Files and Search Quicklinks. You can also choose Search Snippets,
 Show Notes, My Schedule and Quick AI. Show Notes opens the Notes window. A disabled feature's shortcut
-stays configured and reappears in its original position when enabled again.
+stays configured and marked Off in Settings, then reappears in its place when enabled again.
 
 The [Toggle System Appearance](/docs/launcher/system-actions) action changes the appearance of
 _macOS itself_. Tinycast follows it only while its own theme is set to System.

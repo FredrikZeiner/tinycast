@@ -244,13 +244,16 @@ match the visible row order**, including the card at index 0 when present — th
 
 ## The compact bar
 
-Compact is the launcher with an empty query, drawn as glass shapes over a bare window: the header
-row in a capsule, then one round button per configured `AppSettings.compactBarCommands` entry whose
-feature `AppIndex.isCommandEnabled` reports on. General settings shows **Compact Shortcuts** only
+Compact is the default window mode; a stored choice of Expanded is kept. It is the launcher with an
+empty query, drawn as glass shapes over a bare window: the header row in a capsule, then one round
+button per configured `AppSettings.compactBarCommands` entry whose feature
+`AppIndex.isCommandEnabled` reports on. General settings shows **Compact Shortcuts** only
 when Compact is selected: an ordered list of zero to four unique commands, with add, replace,
-remove and move controls. The default remains Clipboard History, Search Files, Search Snippets and
-Search Quicklinks; Emoji & Symbols, Show Notes, My Schedule and Quick AI are also available.
-Disabled features retain their configured positions but disappear from the bar until re-enabled.
+remove and move controls. The default is Clipboard History and Emoji & Symbols, both on for a new
+install, then Search Files and Search Quicklinks; Search Snippets, Show Notes, My Schedule and Quick
+AI are also available. Disabled features retain their configured positions but disappear from the
+bar until re-enabled; Settings still offers them, under **Off** in both menus and marked Off in the
+list, so a slot can be ready before its feature is.
 The ordered command identifiers persist in preferences, backups and `appearance.compactBarCommands`
 in settings.json. Invalid lists are rejected whole, and an empty array deliberately removes all slots.
 

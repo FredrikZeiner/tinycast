@@ -442,7 +442,8 @@ caches, TCC grants and login item, so this cannot disturb an installed copy.
 - Compact mode: typing expands it, and the search bar does **not** shift vertically during the swap
 - Compact mode: the opening frames show no shortcut fill beneath the query before the buttons emerge
 - Compact mode: configure zero through four unique shortcuts, replace/remove them and move them up/down;
-  disabling a feature hides its button without losing its configured position
+  disabling a feature hides its button without losing its configured position, and Settings marks
+  it Off in the list and lists it under Off in both menus
 - Compact mode: Left/Right traverses Search and the visible buttons without wrapping; Down expands
   Search or opens a selected shortcut, Return opens only a shortcut, and typing/pasting starts Search
 - Compact mode: Escape at expanded root clears text, then collapses, then closes under both preferences

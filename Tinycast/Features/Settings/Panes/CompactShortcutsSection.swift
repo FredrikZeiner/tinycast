@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CompactShortcutsSection: View {
     @Environment(AppSettings.self) private var settings
+    @Environment(AppIndex.self) private var appIndex
 
     var body: some View {
         Section {
@@ -9,15 +10,11 @@ struct CompactShortcutsSection: View {
                 shortcut(command)
             }
             Menu {
-                ForEach(availableCommands, id: \.self) { command in
-                    Button {
-                        guard settings.compactBarCommands.count < CommandID.compactBarLimit,
-                            !settings.compactBarCommands.contains(command)
-                        else { return }
-                        settings.compactBarCommands.append(command)
-                    } label: {
-                        commandLabel(command)
-                    }
+                options(availableCommands) { command in
+                    guard settings.compactBarCommands.count < CommandID.compactBarLimit,
+                        !settings.compactBarCommands.contains(command)
+                    else { return }
+                    settings.compactBarCommands.append(command)
                 }
             } label: {
                 Label("Add Shortcut", systemImage: "plus")
@@ -35,24 +32,23 @@ struct CompactShortcutsSection: View {
         CommandID.compactBarOptions.filter { !settings.compactBarCommands.contains($0) }
     }
 
+    private func replacements(for command: CommandID) -> [CommandID] {
+        CommandID.compactBarOptions.filter { $0 == command || !settings.compactBarCommands.contains($0) }
+    }
+
     private func shortcut(_ command: CommandID) -> some View {
         HStack(spacing: Theme.Spacing.lg) {
             Menu {
-                ForEach(CommandID.compactBarOptions, id: \.self) { option in
-                    if option == command || !settings.compactBarCommands.contains(option) {
-                        Button {
-                            replace(command, with: option)
-                        } label: {
-                            commandLabel(option)
-                        }
-                    }
-                }
+                options(replacements(for: command)) { replace(command, with: $0) }
             } label: {
                 commandLabel(command)
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.visible)
             .fixedSize()
+            if !appIndex.isCommandEnabled(command) {
+                Text("Off").foregroundStyle(.secondary)
+            }
             Spacer(minLength: Theme.Spacing.lg)
             Button("Move Up", systemImage: "chevron.up") { move(command, by: -1) }
                 .help("Move Up")
@@ -67,6 +63,32 @@ struct CompactShortcutsSection: View {
         }
         .buttonStyle(.borderless)
         .labelStyle(.iconOnly)
+    }
+
+    /// An off feature stays selectable, so its slot is ready the moment the feature turns on.
+    @ViewBuilder
+    private func options(
+        _ commands: [CommandID], select: @escaping (CommandID) -> Void
+    ) -> some View {
+        let off = commands.filter { !appIndex.isCommandEnabled($0) }
+        ForEach(commands.filter(appIndex.isCommandEnabled), id: \.self) { command in
+            Button {
+                select(command)
+            } label: {
+                commandLabel(command)
+            }
+        }
+        if !off.isEmpty {
+            Section("Off") {
+                ForEach(off, id: \.self) { command in
+                    Button {
+                        select(command)
+                    } label: {
+                        commandLabel(command)
+                    }
+                }
+            }
+        }
     }
 
     private func commandLabel(_ command: CommandID) -> some View {
