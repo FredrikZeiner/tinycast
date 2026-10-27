@@ -216,6 +216,7 @@ enum ShellCommandRunner {
             }
         }
         if let text = decoder.take(force: true) { continuation.yield(.output(text)) }
+        if let text = decoder.takeTruncated() { continuation.yield(.output(text)) }
 
         let status = terminal.wait()
         terminal.close()
@@ -275,10 +276,21 @@ enum ShellCommandRunner {
                 end = scalarBoundary(before: pending.count)
             }
             guard let end, end > 0 else { return nil }
-            // Latin-1 cannot fail, so other encodings still reach the reader.
             let bytes = Array(pending[0..<end])
             pending.removeFirst(end)
-            return String(bytes: bytes, encoding: .utf8) ?? String(bytes: bytes, encoding: .isoLatin1)
+            return Self.decode(bytes)
+        }
+
+        /// Once the command is gone nothing can complete a character, so its bytes are shown as is.
+        mutating func takeTruncated() -> String? {
+            guard !pending.isEmpty else { return nil }
+            defer { pending.removeAll() }
+            return Self.decode(pending)
+        }
+
+        /// Latin-1 cannot fail, so other encodings still reach the reader.
+        private static func decode(_ bytes: [UInt8]) -> String? {
+            String(bytes: bytes, encoding: .utf8) ?? String(bytes: bytes, encoding: .isoLatin1)
         }
 
         /// Walks back over at most three continuation bytes to the start of a whole character.
@@ -292,7 +304,8 @@ enum ShellCommandRunner {
             // A lead byte only holds back when its own sequence is still incomplete.
             guard boundary > 0 else { return index }
             let lead = pending[boundary - 1]
-            let width = lead >= 0xF0 ? 4 : lead >= 0xE0 ? 3 : lead >= 0xC0 ? 2 : 1
+            // RFC 3629: 0xF5 and up never begin a character, so nothing is held back for them.
+            let width = lead >= 0xF5 ? 1 : lead >= 0xF0 ? 4 : lead >= 0xE0 ? 3 : lead >= 0xC0 ? 2 : 1
             return index - boundary + 1 >= width ? index : boundary - 1
         }
     }
