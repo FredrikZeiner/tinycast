@@ -198,7 +198,7 @@ enum ShellCommandRunner {
 
         while true {
             // A waiting prompt never prints again, so only a quiet pty can show its unended line.
-            if decoder.isHolding, !hasOutput(terminal.parentEnd, within: flushInterval) {
+            if decoder.canFlush, !hasOutput(terminal.parentEnd, within: flushInterval) {
                 if let text = decoder.take(force: true) {
                     continuation.yield(.output(text))
                     lastYield = ContinuousClock().now
@@ -229,7 +229,12 @@ enum ShellCommandRunner {
     /// A hangup counts as output, so the `read` that follows still sees the child go.
     nonisolated private static func hasOutput(_ descriptor: Int32, within interval: Duration) -> Bool {
         var request = pollfd(fd: descriptor, events: Int16(POLLIN), revents: 0)
-        return poll(&request, 1, Int32(interval / .milliseconds(1))) != 0
+        var ready: Int32
+        // An interrupted wait says nothing about the pty; falling through would block in `read`.
+        repeat {
+            ready = poll(&request, 1, Int32(interval / .milliseconds(1)))
+        } while ready < 0 && errno == EINTR
+        return ready != 0
     }
 
     /// Set from the main actor and read on the drain queue, so the flag carries its own lock.
@@ -251,10 +256,11 @@ enum ShellCommandRunner {
     }
 
     /// Whole lines only: a newline is a scalar boundary, so no read decodes mid-character.
-    private struct TerminalTextDecoder {
+    struct TerminalTextDecoder {
         private var pending: [UInt8] = []
 
-        var isHolding: Bool { !pending.isEmpty }
+        /// A lone partial character is not text yet, so waiting on it alone would wake for nothing.
+        var canFlush: Bool { scalarBoundary(before: pending.count) > 0 }
 
         mutating func append(_ bytes: [UInt8], count: Int) {
             pending.append(contentsOf: bytes[0..<count])
