@@ -197,6 +197,14 @@ enum ShellCommandRunner {
         var lastYield = ContinuousClock().now
 
         while true {
+            // A waiting prompt never prints again, so only a quiet pty can show its unended line.
+            if decoder.isHolding, !hasOutput(terminal.parentEnd, within: flushInterval) {
+                if let text = decoder.take(force: true) {
+                    continuation.yield(.output(text))
+                    lastYield = ContinuousClock().now
+                }
+                continue
+            }
             // Zero is EOF; -1 with EIO is what a pty master returns once its child is gone.
             let count = read(terminal.parentEnd, &buffer, readSize)
             guard count > 0 else { break }
@@ -216,6 +224,12 @@ enum ShellCommandRunner {
                 ShellCommandResult(
                     termination: stopped.isSet ? .stopped : .exited(status: status))))
         continuation.finish()
+    }
+
+    /// A hangup counts as output, so the `read` that follows still sees the child go.
+    nonisolated private static func hasOutput(_ descriptor: Int32, within interval: Duration) -> Bool {
+        var request = pollfd(fd: descriptor, events: Int16(POLLIN), revents: 0)
+        return poll(&request, 1, Int32(interval / .milliseconds(1))) != 0
     }
 
     /// Set from the main actor and read on the drain queue, so the flag carries its own lock.
@@ -239,6 +253,8 @@ enum ShellCommandRunner {
     /// Whole lines only: a newline is a scalar boundary, so no read decodes mid-character.
     private struct TerminalTextDecoder {
         private var pending: [UInt8] = []
+
+        var isHolding: Bool { !pending.isEmpty }
 
         mutating func append(_ bytes: [UInt8], count: Int) {
             pending.append(contentsOf: bytes[0..<count])

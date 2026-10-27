@@ -409,6 +409,19 @@ struct CustomCommandTests {
             "output arrives while the command is still running",
             (firstOutputAt ?? .greatestFiniteMagnitude) < 0.5)
 
+        // A picker's last line ends without a newline, and the command then waits on its answer.
+        let prompting = ShellCommandRunner.stream("printf 'Continue? [y/N] '; sleep 1")
+        let asked = Date()
+        var promptShownAt: TimeInterval?
+        for await event in prompting.events {
+            if case .output(let text) = event, text.contains("Continue?"), promptShownAt == nil {
+                promptShownAt = Date().timeIntervalSince(asked)
+            }
+        }
+        check(
+            "a prompt that ends no line is shown while the command waits",
+            (promptShownAt ?? .greatestFiniteMagnitude) < 0.5)
+
         let statused = await collect(ShellCommandRunner.stream("exit 7"))
         check(
             "a streamed run reports its exit status",
