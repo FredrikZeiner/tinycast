@@ -468,18 +468,24 @@ struct CustomCommandTests {
             "large output arrives complete",
             largeLines.count == 20001 && largeLines.first?.count == 200_000 && largeLines.last == "20000")
 
-        let heldPrompt = ShellCommandRunner.stream("printf 'Continue? '; sleep 30")
-        Task {
-            try? await Task.sleep(for: .milliseconds(300))
-            heldPrompt.stop()
+        // Stopped once the prompt shows, so a slow shell start under load cannot race the stop.
+        let heldPrompt = ShellCommandRunner.stream("printf 'Continue? '; sleep 5")
+        var stoppedAt: Date?
+        var heldResult: ShellCommandResult?
+        for await event in heldPrompt.events {
+            switch event {
+            case .output(let text):
+                guard stoppedAt == nil, text.contains("Continue?") else { continue }
+                stoppedAt = Date()
+                heldPrompt.stop()
+            case .finished(let result):
+                heldResult = result
+            }
         }
-        let stopStarted = Date()
-        let stoppedAtPrompt = await collect(heldPrompt)
         check(
             "stop ends a command waiting at a prompt, which still showed",
-            stoppedAtPrompt.result?.termination == .stopped
-                && stoppedAtPrompt.log.contains("Continue?")
-                && Date().timeIntervalSince(stopStarted) < 1.5)
+            heldResult?.termination == .stopped
+                && Date().timeIntervalSince(stoppedAt ?? .distantPast) < 1.5)
 
         let statused = await collect(ShellCommandRunner.stream("exit 7"))
         check(
